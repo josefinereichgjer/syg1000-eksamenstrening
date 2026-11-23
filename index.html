@@ -679,7 +679,7 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
 
       <details class="gsec"><summary><span class="gt">Smittevern: infeksjonskjeden</span><span class="gs">Seks ledd og smitteveier</span></summary><div class="gbody">
         <div class="chain"><span>Smittestoff</span><span>Smittekilde</span><span>Utgangsport</span><span>Smittemåte</span><span>Inngangsport</span><span>Mottakelig vert</span></div>
-        <figure class="gimg"><img src="img/smittekjeden.webp" alt="Smittekjeden: smittestoff, smittekilde, smitteutgang, smittemåte, smitteinngang og smittemottaker, vist med forkjølelsesvirus som eksempel." loading="lazy"></figure>
+        <figure class="gimg"><img loading="lazy" decoding="async" src="img/smittekjeden.webp" alt="Smittekjeden: smittestoff, smittekilde, smitteutgang, smittemåte, smitteinngang og smittemottaker, vist med forkjølelsesvirus som eksempel." loading="lazy"></figure>
         <p><b>Smitteveier:</b> kontaktsmitte (direkte og indirekte), dråpesmitte, luftsmitte, blodsmitte og fekal-oral smitte.</p>
         <p class="hint">Smittevern handler om å bryte minst ett ledd. Si alltid hvilket ledd tiltaket bryter.</p>
         <div class="exs"><span class="vt">Eksempelsetninger</span><ul class="rules">
@@ -2391,7 +2391,7 @@ initCloud();
 </style>
 <script>
 (function(){
-  const w=document.getElementById("welcome"),c=document.getElementById("fw");if(!w||!c)return;
+  return;const w=document.getElementById("welcome"),c=document.getElementById("fw");if(!w||!c)return;
   const x=c.getContext("2d");let W,H,parts=[],rockets=[],run=true;
   const fit=()=>{W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio};fit();addEventListener("resize",fit);
   const cols=["#FFD54A","#FF6B9A","#7CE38B","#6EC8FF","#B48CFF","#FFFFFF","#FF9F43"];
