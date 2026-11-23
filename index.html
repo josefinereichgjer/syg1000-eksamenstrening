@@ -79,6 +79,7 @@ button:focus-visible,textarea:focus-visible,.chip:focus-visible{outline:2px soli
 @media (max-width:760px){.jbody,.jbody.hasimg{grid-template-columns:1fr}}
 .story{padding:18px 22px;max-width:68ch}
 .story p{margin:0 0 12px}
+.jbody.centered .story{margin-inline:auto;max-width:76ch;width:100%}
 .vitals{border-left:1px solid var(--line);padding:18px}
 @media (max-width:760px){.vitals{border-left:0;border-top:1px solid var(--line)}}
 .vitals h3,.terms h3{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:500}
@@ -1861,6 +1862,7 @@ CASES.push({
 CASES.push({
  "id": "eksamen-2025",
  "group": "Tidligere eksamener",
+ "jcls": "centered",
  "name": "Mette Hansen, 83 år",
  "setting": "Ordinær eksamen 1.12.2025",
  "theme": "Ordinær eksamen SYX1000 · sykehjem · hjerneslag · dysfagi · obstipasjon",
@@ -1935,6 +1937,7 @@ CASES.push({
 CASES.push({
  "id": "eksamen-2026",
  "group": "Tidligere eksamener",
+ "jcls": "centered",
  "name": "Paul Pettersen, 77 år",
  "setting": "Utsatt eksamen 19.03.2026",
  "theme": "Utsatt eksamen SYX1000 · lårhalsbrudd · KOLS og oksygen · dyspné · personlig hygiene",
@@ -2086,7 +2089,7 @@ function renderCase(){
   if(c.pdf){pane.innerHTML=`<article class="journal"><div class="jhead"><h2>${c.name}</h2><span class="meta">${c.group} · s. 5–7</span></div><div class="pdfpages">${c.pdf.map((p,k)=>`<img src="${p}" alt="${c.name}, side ${k+5}" loading="lazy">`).join("")}</div></article>`;return}
   pane.innerHTML=`<article class="journal">
     <div class="jhead"><h2>${c.name}</h2><span class="meta">${c.group!=="Pasientcaser"?c.group+" · ":""}${c.setting} · ${c.tasks.length} oppgaver</span></div>
-    <div class="jbody${c.vitals.length?"":" novitals"}${c.img?" hasimg":""}"><div class="story">${c.story}${c.note?`<p class="cnote">${c.note}</p>`:""}</div>
+    <div class="jbody${c.vitals.length?"":" novitals"}${c.img?" hasimg":""}${c.jcls?" "+c.jcls:""}"><div class="story">${c.story}${c.note?`<p class="cnote">${c.note}</p>`:""}</div>
     ${(()=>{const v=c.vitals.length?`<aside class="vitals"><h3>Observasjoner</h3><dl>${c.vitals.map(v=>`<div><dt>${v[0]}</dt><dd>${v[1]}</dd></div>`).join("")}</dl></aside>`:"";return c.img?`<figure class="photo"><img src="${c.img}" alt="${c.imgAlt||c.name}"${c.imgPos?` style="object-position:${c.imgPos}"`:""}></figure>${v}`:v})()}</div>
     <div class="terms"><h3>Fagbegreper du bør bruke i svarene</h3><div class="chips">${c.terms.map(t=>`<span class="chip">${t}</span>`).join("")}</div></div>
   </article>
