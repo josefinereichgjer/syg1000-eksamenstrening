@@ -212,6 +212,11 @@ table.pts td:nth-child(-n+2){white-space:nowrap;padding-right:12px}
 .gbody .diag3,.gbody .dex,.gbody .chain{margin-top:14px}
 .gbody .hint{font-size:15px;color:var(--muted)}
 .gbody .small li{font-size:15px}
+.gbody .exwrap{margin-top:18px}
+.gbody .exbox{margin-top:14px;padding-top:2px;border-top:1px dashed var(--line)}
+.gbody .exbox ol.bex{padding-left:22px}
+.gbody .exbox ol.bex li{margin-bottom:10px}
+.gbody .exbox .tag{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);margin-left:6px;vertical-align:1px}
 /* Fargekoding, rolig og med god kontrast (WCAG AA/AAA) */
 .tabs button[aria-selected="true"]{background:var(--blue);color:var(--on-primary)}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:var(--on-primary)}
@@ -545,7 +550,24 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
       <details class="gsec"><summary><span class="gt">De ni grunnleggende fysiologiske behovene</span><span class="gs">Listen du må kunne utenat</span></summary><div class="gbody">
         <ol class="cols2"><li>Personlig hygiene</li><li>Respirasjon</li><li>Sirkulasjon</li><li>Temperatur</li><li>Væske og ernæring</li><li>Eliminasjon</li><li>Aktivitet</li><li>Søvn og hvile</li><li>Seksualitet</li></ol>
         <p class="hint">For full uttelling må alle ni være med, hvert med eksempel fra caset under riktig behov. Med færre enn sju blir uttellingen lav. Skriv «er påvirket fordi …» eller «kan bli påvirket (risiko) fordi …».</p>
-        <div class="formula">Ernæring er påvirket fordi pasienten har dårlig matlyst, drikker lite og har dysfagi.</div></div></details>
+        <div class="formula">Ernæring er påvirket fordi pasienten har dårlig matlyst, drikker lite og har dysfagi.</div>
+        <div class="exwrap">
+          <button class="btn" type="button" id="behovExBtn" aria-expanded="false" aria-controls="behovEx">Vis eksempler fra Ingrid-caset</button>
+          <div class="exbox" id="behovEx" hidden>
+            <p class="hint"><b>Case:</b> Ingrid Hansen (84 år) bor på sykehjem og er innlagt med mistanke om lungebetennelse. Hun har gått ned 7 kg på tre måneder, spiser små porsjoner, drikker lite og blir sliten under måltidene. Hun hoster når hun drikker og får surklende stemme etter måltider. Ved innleggelsen er hun slapp, har rask og overfladisk respirasjon, klarer ikke å hoste opp slim, har tørr munn, seigt slim, redusert muskelkraft, feber og er mer forvirret enn vanlig.</p>
+            <ol class="bex">
+              <li><b>Personlig hygiene</b><span class="tag">risiko</span><br>Ingrid kan bli påvirket fordi hun har tørr munn og nedsatt allmenntilstand, noe som gir risiko for dårlig munnhygiene og munninfeksjon.</li>
+              <li><b>Respirasjon</b><span class="tag">påvirket</span><br>Ingrid er påvirket fordi hun har rask og overfladisk respirasjon (takypné) og ikke klarer å hoste opp slim, noe som gir nedsatt ventilasjon og risiko for hypoksi. Hosting når hun drikker og surklende stemme etter måltider kan tyde på svelgvansker, som gir risiko for aspirasjon og lungebetennelse.</li>
+              <li><b>Sirkulasjon</b><span class="tag">risiko</span><br>Ingrid kan bli påvirket fordi dehydrering og feber kan gi redusert blodvolum, lavt blodtrykk og økt puls.</li>
+              <li><b>Temperatur</b><span class="tag">påvirket</span><br>Ingrid er påvirket fordi hun har feber (hypertermi), som øker stoffskiftet og væsketapet.</li>
+              <li><b>Væske og ernæring</b><span class="tag">påvirket</span><br>Ingrid er påvirket fordi hun har gått ned 7 kg på tre måneder, har redusert matlyst, spiser små porsjoner og drikker lite. Tørr munn og seigt slim tyder på dehydrering.</li>
+              <li><b>Eliminasjon</b><span class="tag">risiko</span><br>Ingrid kan bli påvirket fordi lite væske og mat kan gi konsentrert urin, redusert urinmengde og obstipasjon. Caset sier ikke noe om dette, så det er bare en risiko.</li>
+              <li><b>Aktivitet</b><span class="tag">påvirket</span><br>Ingrid er påvirket fordi hun er slapp, har redusert muskelkraft og blir sliten under måltidene. Det gir risiko for nedsatt mobilitet.</li>
+              <li><b>Søvn og hvile</b><span class="tag">risiko</span><br>Ingrid kan bli påvirket fordi feber, hoste og anstrengt respirasjon kan forstyrre søvnen.</li>
+              <li><b>Seksualitet</b><span class="tag">risiko</span><br>Ingrid kan bli påvirket fordi hun er slapp, forvirret og avhengig av hjelp, noe som kan true verdighet, kroppsbilde og privatliv under stell. Caset sier lite om dette, så skriv det kort og merk det som risiko.</li>
+            </ol>
+          </div>
+        </div></div></details>
 
       <details class="gsec"><summary><span class="gt">Sykepleieprosessen: fem faser</span><span class="gs">Fra kartlegging til evaluering</span></summary><div class="gbody">
         <ol>
@@ -2224,6 +2246,8 @@ initCloud();
  const upd=()=>{b.textContent=all().every(d=>d.open)?"Lukk alle":"Åpne alle"};
  b.onclick=()=>{const o=!all().every(d=>d.open);all().forEach(d=>d.open=o);upd()};
  all().forEach(d=>d.addEventListener("toggle",upd));upd()})();
+(function(){const b=document.getElementById("behovExBtn"),box=document.getElementById("behovEx");if(!b||!box)return;
+ b.onclick=()=>{const open=box.hidden;box.hidden=!open;b.setAttribute("aria-expanded",String(open));b.textContent=open?"Skjul eksempler fra Ingrid-caset":"Vis eksempler fra Ingrid-caset"}})();
 
 </script>
 
