@@ -2012,6 +2012,55 @@ CASES.push({
 });
 
 CASES.push({
+  id: "ingrid-hansen",
+  group: "Eksamenstrening 3",
+  name: "Ingrid Hansen, 84 år",
+  setting: "Medisinsk sengepost",
+  theme: "Underernæring · dysfagi · pneumoni · delirium · væske og ernæring",
+  story: `<p>Du arbeider som sykepleier på en medisinsk sengepost. Ingrid Hansen, 84 år, blir innlagt med mistanke om lungebetennelse (pneumoni). Hun bor på sykehjem og har hatt redusert matlyst de siste månedene.</p>
+<p>Ingrid har gått ned 7 kg på tre måneder. Hun spiser små porsjoner, drikker lite og forteller at hun ofte blir sliten under måltidene. Personalet har også lagt merke til at hun hoster når hun drikker vann, og at hun av og til får en surklende stemme etter måltider.</p>
+<p>Ved innleggelsen virker Ingrid svært slapp. Hun har rask og overfladisk respirasjon, og klarer ikke å hoste opp slimet som samler seg i luftveiene. Hun har tørr munn, seigt slim og redusert muskelkraft. Hun har feber og virker mer forvirret enn vanlig.</p>`,
+  vitals: [],
+  terms: ["takypné", "hypoksi", "alveolær ventilasjon", "muskelnedbrytning", "dehydrering", "dysfagi", "aspirasjon", "aspirasjonspneumoni", "delirium", "ernæringstrappen", "KMI", "NEWS2"],
+  ansBtn: "Vis løsningsforslag", ansHead: "Løsningsforslag",
+  note: "Løsningsforslagene til oppgave 1 og 2 er skrevet kort nok til å rekke på eksamen (fire timer til ni langsvarsoppgaver). Oppgave 3–7 har ikke løsningsforslag ennå, men sjekklisten viser hva sensor ser etter.",
+  tasks: [
+    { label: "1", verb: "Beskriv", weight: 10, q: "Gjør en datasamling, og beskriv hvilke grunnleggende fysiologiske behov som er berørt, eller kan bli berørt (risiko), hos Ingrid.",
+      answer: `<p><b>Respirasjon (påvirket):</b> Ingrid har rask og overfladisk respirasjon (takypné) og klarer ikke å hoste opp slim, noe som gir nedsatt ventilasjon og risiko for hypoksi. Hosting når hun drikker og surklende stemme etter måltider kan tyde på svelgvansker, som gir risiko for aspirasjon og lungebetennelse.</p>
+<p><b>Væske og ernæring (påvirket):</b> Hun har gått ned 7 kg på tre måneder, har redusert matlyst, spiser små porsjoner og drikker lite. Tørr munn og seigt slim tyder på dehydrering.</p>
+<p><b>Temperatur (påvirket):</b> Ingrid har feber (hypertermi), som øker stoffskiftet og væsketapet.</p>
+<p><b>Aktivitet (påvirket):</b> Hun er slapp, har redusert muskelkraft og blir sliten under måltidene. Det gir risiko for nedsatt mobilitet.</p>
+<p><b>Sirkulasjon (risiko):</b> Dehydrering og feber kan gi redusert blodvolum, lavt blodtrykk og økt puls.</p>
+<p><b>Eliminasjon (risiko):</b> Lite væske og mat kan gi konsentrert urin, redusert urinmengde og obstipasjon. Caset sier ikke noe om dette, så det er bare en risiko.</p>
+<p><b>Søvn og hvile (risiko):</b> Feber, hoste og anstrengt respirasjon kan forstyrre søvnen.</p>
+<p><b>Personlig hygiene (risiko):</b> Tørr munn og nedsatt allmenntilstand gir risiko for dårlig munnhygiene og munninfeksjon.</p>
+<p><b>Seksualitet (risiko):</b> Slapphet, forvirring og behov for hjelp kan true verdighet, kroppsbilde og privatliv under stell. Caset sier lite om dette, så det skrives kort og merkes som risiko.</p>
+<p class="hint">Forvirringen kan være delirium og bør også nevnes (kognisjon og trygghet), med fallrisiko som følge av slapphet og forvirring.</p>`,
+      check: ["Alle ni behov, eller minst sju", "Pensumbegreper (takypné, hypoksi, dehydrering, aspirasjon)", "Funn fra caset under hvert behov", "Risiko er tydelig merket («kan bli påvirket (risiko) fordi …»)", "Ingen tiltak", "En til to setninger per behov"],
+      ref: "Kristoffersen mfl. (2021) bind 2, om grunnleggende behov." },
+    { label: "2", verb: "Gjør rede for", weight: 20, q: "Gjør rede for hvordan svikt i behovet for væske og ernæring kan gi svikt eller risiko for svikt i respirasjon hos Ingrid. Bruk kunnskap fra anatomi og fysiologi.",
+      answer: `<p>Ingrid har gått ned 7 kg på tre måneder, spiser små porsjoner og drikker lite. Svikt i væske og ernæring gir svikt og risiko for svikt i respirasjon på flere måter.</p>
+<p><b>Muskelnedbrytning:</b> Ved underernæring bryter kroppen ned muskelprotein for å få energi, også i diafragma og interkostalmusklene. Det gir små pustedyp og redusert alveolær ventilasjon, med risiko for hypoksi og hyperkapni. Svake muskler gir også svak hoste. Ingrid har redusert muskelkraft, rask og overfladisk respirasjon og klarer ikke å hoste opp slim.</p>
+<p><b>Dehydrering:</b> Slimet i luftveiene blir seigere, og flimmerhårene klarer dårligere å transportere det oppover. Sekret blir liggende, kan gi atelektase og er grobunn for bakterier. Ingrid har tørr munn og seigt slim.</p>
+<p><b>Svekket immunforsvar:</b> Immunforsvaret trenger protein til antistoffer og immunceller, og vitaminer og mineraler for å fungere. Ved underernæring øker risikoen for infeksjon. Ingrid er innlagt med mistanke om pneumoni og har feber.</p>
+<p><b>Dysfagi og aspirasjon:</b> Ingrid hoster når hun drikker og får surklende stemme etter måltider, som tyder på svelgvansker. Mat, drikke og bakterier kan da komme ned i lungene og gi aspirasjonspneumoni.</p>
+<p>Disse faktorene forsterker hverandre: dårlig respirasjon gjør Ingrid sliten, og det gjør det vanskeligere å spise og drikke.</p>`,
+      check: ["Muskelnedbrytning i diafragma og interkostalmusklene gir svakere ventilasjon og svak hoste", "Dehydrering gir seigt slim", "Svekket immunforsvar (protein, vitaminer, mineraler)", "Dysfagi og aspirasjon gir aspirasjonspneumoni", "Hvert punkt er koblet til funn hos Ingrid", "Holder seg til respirasjon (ikke eliminasjon eller sirkulasjon)"],
+      ref: "Kristoffersen mfl. (2021) bind 2 og 3, om respirasjon og væske og ernæring." },
+    { label: "3", verb: "Forklar", weight: 15, q: "Forklar hvilke observasjoner du gjør når Ingrid kommer inn, og hvorfor de er viktige.",
+      check: ["ABCDE og NEWS2", "Respirasjonsfrekvens, dybde og rytme, og SpO₂", "Puls, blodtrykk og temperatur", "Bevissthet og forvirring (delirium)", "Ekspektorat", "Væskebalanse og hudturgor", "Begrunnelse for hver observasjon"] },
+    { label: "4", verb: "Beskriv", weight: 10, q: "Formuler to sykepleiediagnoser for Ingrid: én problemdiagnose og én risikodiagnose.",
+      check: ["Problemdiagnose: P + E + S", "Risikodiagnose: R + E (uten kjennetegn)", "Eksempel: «Nedsatt evne til å hoste opp sekret relatert til svekket muskelkraft og seigt slim, kjennetegnet ved rask, overfladisk respirasjon og surkling.»", "Eksempel: «Risiko for aspirasjon relatert til svelgvansker.»"] },
+    { label: "5", verb: "Gjør rede for", weight: 20, q: "Sykepleiediagnose: Risiko for aspirasjon relatert til svelgvansker. Mål: Ingrid aspirerer ikke under måltider. Gjør rede for tre til fire sykepleietiltak, og begrunn dem.",
+      check: ["Oppreist sittestilling under og etter måltidet", "Konsistenstilpasset kost og fortykket drikke", "Små munnfuller, ro og tilsyn", "Munnstell", "Vurdering av svelgefunksjon og henvisning til logoped", "En faglig begrunnelse for hvert tiltak"] },
+    { label: "6", verb: "Forklar", weight: 15, q: "Forklar hvordan du kartlegger Ingrids ernæringsstatus, og hvilke tiltak i ernæringstrappen som er aktuelle.",
+      check: ["Screening med MST, KMI og vekttap i prosent", "Kostregistrering og kostsamtale", "Tegn på dysfagi", "Ernæringstrappen nedenfra: tilrettelagte måltider, berikning, næringsdrikk og eventuelt sonde", "KMI for eldre (anbefalt 22–27)"] },
+    { label: "7", verb: "Beskriv", weight: 10, q: "Ingrid er mer forvirret enn vanlig. Beskriv hvordan du kan ivareta kommunikasjon, trygghet og autonomi i møte med henne.",
+      check: ["Enkle og korte beskjeder, ro, kjente rutiner og orienteringshjelp", "Involvere pårørende", "Vurdere samtykkekompetanse", "Forvirringen kan være delirium, med feber og dehydrering som mulige årsaker"] }
+  ]
+});
+
+CASES.push({
   id: "seminar",
   group: "Eksamensseminar",
   name: "Eksamensseminar november",
@@ -2104,9 +2153,9 @@ function renderCase(){
       <div class="tmeta"><span class="tnum">Oppgave ${t.label||i+1}</span><span class="badge ${cls}">${t.verb}${t.weight?` · ${t.weight} %`:""}</span></div>
       <p class="q">${t.q}</p>
       <textarea id="${key}" placeholder="Skriv ditt eget svar først, i hele setninger og med fagbegreper …">${esc(S.get(key,""))}</textarea>
-      <div class="row">${t.answer?`<button class="btn primary" data-toggle="${i}" data-label="${bLab}">${bLab}</button>`:`<span class="hint">Ingen løsningsforslag ennå</span>`}<span class="hint" id="wc-${i}"></span></div>
-      ${t.answer?`<div class="answer" id="ans-${i}" hidden>
-        <h4>${hLab}</h4><div class="model">${t.answer}</div>
+      <div class="row">${(t.answer||t.check)?`<button class="btn primary" data-toggle="${i}" data-label="${t.answer?bLab:"Vis hva sensor ser etter"}">${t.answer?bLab:"Vis hva sensor ser etter"}</button>`:`<span class="hint">Ingen løsningsforslag ennå</span>`}<span class="hint" id="wc-${i}"></span></div>
+      ${(t.answer||t.check)?`<div class="answer" id="ans-${i}" hidden>
+        ${t.answer?`<h4>${hLab}</h4><div class="model">${t.answer}</div>`:""}
         ${t.check?`<div class="check"><h4>Sensor ser etter</h4><ul>${t.check.map((k,j)=>`<li><label><input type="checkbox" id="chk-${c.id}-${i}-${j}"> ${k}</label></li>`).join("")}</ul></div>`:""}
         ${t.ref?`<p class="ref">Pensum: ${t.ref}</p>`:""}
       </div>`:""}</div>`}).join("")}</div>`;
@@ -2114,7 +2163,7 @@ function renderCase(){
     const key=`syg-ans-${c.id}-${i}`, ta=document.getElementById(key), wc=document.getElementById("wc-"+i);
     const upd=()=>{const n=ta.value.trim()?ta.value.trim().split(/\s+/).length:0;wc.textContent=n?`${n} ord`:""};
     upd(); ta.addEventListener("input",()=>{S.set(key,ta.value);upd();saveTask(c.id,i)});
-    (t.check||[]).forEach((_,j)=>{const id=`chk-${c.id}-${i}-${j}`,cb=document.getElementById(id);cb.checked=S.get(id,false);cb.onchange=()=>{S.set(id,cb.checked);saveTask(c.id,i,300)}});
+    (t.check||[]).forEach((_,j)=>{const id=`chk-${c.id}-${i}-${j}`,cb=document.getElementById(id);if(!cb)return;cb.checked=S.get(id,false);cb.onchange=()=>{S.set(id,cb.checked);saveTask(c.id,i,300)}});
   });
   pane.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{const a=document.getElementById("ans-"+b.dataset.toggle);a.hidden=!a.hidden;b.textContent=a.hidden?b.dataset.label:b.dataset.label.replace(/^Vis/,"Skjul")});
 }
