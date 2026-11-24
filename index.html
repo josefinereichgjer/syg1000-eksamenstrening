@@ -2241,8 +2241,7 @@ function renderDecks(){
 }
 function fmtBack(h){
   h=String(h).trim(); let lead="";
-  const m=h.match(/^<b>([\s\S]*?)<\/b>\s*/);
-  if(m){lead=`<p class="lead">${m[1]}</p>`;h=h.slice(m[0].length)}
+
   if(!h)return lead;
   if(/(^|\s)1\)\s/.test(h)&&/\s2\)\s/.test(h)){
     const parts=h.split(/\s+(?=\d+\)\s)/);
