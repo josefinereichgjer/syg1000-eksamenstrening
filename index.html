@@ -260,6 +260,13 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 .u-prog .ustar{font-size:26px!important;padding:0 6px!important;border:0!important;background:none!important;color:#F5CF4D!important}
 .u-prog .ustar[aria-pressed="true"]{color:#FFC400!important}
 .ufrow{display:flex;align-items:center;gap:6px}.ufrow [data-uf]{flex:1}
+.ufrow2{display:flex;gap:6px;margin:2px 0 8px 6px;flex-wrap:wrap}
+.u-filter .ufrow2 button{white-space:nowrap;width:auto;min-height:0;height:auto;flex:0 0 auto;font:inherit;font-size:14px;line-height:1.2;padding:6px 10px;text-align:center;border-radius:999px;cursor:pointer;background:rgba(120,118,150,.20);color:#34324A;border:1px solid rgba(255,255,255,.55)}
+.u-filter .ufrow2 button span{opacity:.7}
+.u-filter .ufrow2 button:hover{background:rgba(120,118,150,.32)}
+.u-filter .ufrow2 button[aria-pressed="true"]{background:linear-gradient(180deg,rgba(128,126,160,.98),rgba(88,86,120,.98));color:#fff;border-color:rgba(255,255,255,.4)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ufrow2 button:not([aria-pressed="true"]){background:rgba(160,158,190,.22);color:#E4E2F2}}
+:root[data-theme="dark"] .ufrow2 button:not([aria-pressed="true"]){background:rgba(160,158,190,.22);color:#E4E2F2}
 .uacts{display:flex;align-items:center;gap:6px}
 .btn.star[aria-pressed="false"],.chip.starchip[aria-pressed="false"]{color:#F5CF4D}
 .btn.star[aria-pressed="true"],.chip.starchip[aria-pressed="true"]{color:#FFC400;text-shadow:0 0 1px #E0A500}
@@ -2297,13 +2304,15 @@ const NEEDS={R:["Respirasjon","#2F6FD0"],S:["Sirkulasjon","#C8323C"],T:["Tempera
 const dot=k=>`<span class="dot" style="background:${NEEDS[k][1]}" title="${NEEDS[k][0]}" aria-label="${NEEDS[k][0]}"></span>`;
 const dots=n=>`<span class="dots">${[...n].map(dot).join("")}</span>`;
 let uMode=S.get("u-mode","T"),uFilter=S.get("u-filter","all"),uIdx=0,uFlip=false,uOrder=null;
-let uOnlyStar=false;
+let uOnlyStar=false,uOnlyKnown=false,uOnlyAgain=false;
 const uid=c=>"u:"+uMode+":"+UFC[uMode].indexOf(c);
-function uList(){const L=UFC[uMode];return L.filter(c=>(uFilter==="all"||c.n.includes(uFilter))&&(!uOnlyStar||stars.has(uid(c))))}
+function uList(){const L=UFC[uMode];return L.filter(c=>(uFilter==="all"||c.n.includes(uFilter))&&(!uOnlyStar||stars.has(uid(c)))&&(!uOnlyKnown||known.has(uid(c)))&&(!uOnlyAgain||!known.has(uid(c))))}
 function uSeq(){const L=uList();if(!uOrder||uOrder.length!==L.length)uOrder=L.map((_,i)=>i);return uOrder.map(i=>L[i])}
 function renderUFilter(){const f=document.getElementById("ufilter");const keys=Object.keys(NEEDS).filter(k=>uMode==="T"||k!=="G");
- f.innerHTML=`<div class="ufrow"><button type="button" class="ustar" id="uonlystar" aria-pressed="${uOnlyStar}" title="Vis bare stjernemerkede" aria-label="Vis bare stjernemerkede kort">★</button><button type="button" data-uf="all" aria-pressed="${uFilter==="all"}">Alle</button></div>`+keys.map(k=>`<button type="button" data-uf="${k}" aria-pressed="${uFilter===k}">${dot(k)}${NEEDS[k][0]}</button>`).join("");
+ f.innerHTML=`<div class="ufrow"><button type="button" class="ustar" id="uonlystar" aria-pressed="${uOnlyStar}" title="Vis bare stjernemerkede" aria-label="Vis bare stjernemerkede kort">★</button><button type="button" data-uf="all" aria-pressed="${uFilter==="all"}">Alle</button></div><div class="ufrow2"><button type="button" id="uonlyagain" aria-pressed="${uOnlyAgain}" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span>${UFC[uMode].filter(c=>!known.has(uid(c))).length}</span></button><button type="button" id="uonlyknown" aria-pressed="${uOnlyKnown}" title="Vis bare kort jeg kan">Kan <span>${UFC[uMode].filter(c=>known.has(uid(c))).length}</span></button></div>`+keys.map(k=>`<button type="button" data-uf="${k}" aria-pressed="${uFilter===k}">${dot(k)}${NEEDS[k][0]}</button>`).join("");
  document.getElementById("uonlystar").onclick=()=>{uOnlyStar=!uOnlyStar;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
+ document.getElementById("uonlyagain").onclick=()=>{uOnlyAgain=!uOnlyAgain;if(uOnlyAgain)uOnlyKnown=false;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
+ document.getElementById("uonlyknown").onclick=()=>{uOnlyKnown=!uOnlyKnown;if(uOnlyKnown)uOnlyAgain=false;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
  f.querySelectorAll("[data-uf]").forEach(b=>b.onclick=()=>{uFilter=b.dataset.uf;S.set("u-filter",uFilter);uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()});
  document.querySelectorAll("[data-umode]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.umode===uMode));
  document.getElementById("ulegend").innerHTML=Object.keys(NEEDS).map(k=>`<span>${dot(k)}${NEEDS[k][0]}</span>`).join("")}
@@ -2325,20 +2334,23 @@ function backScen(c){return `<div><h4>Sykepleiediagnose (${c.typ==="P"?"problem"
  <div><h4>Mål</h4>${Array.isArray(c.mal)?`<ul class="ml">${c.mal.map(m=>`<li>${m}</li>`).join("")}</ul>`:`<p>${c.mal}</p>`}</div>
  <div><h4>Tiltak → begrunnelse</h4><ul class="tt">${c.tiltak.map(t=>`<li><b>${t[0]}</b><span>${t[1]}</span></li>`).join("")}</ul></div>${c.andre?`<div><h4>Andre diagnoser fra forsiden</h4><ul class="ml">${c.andre.map(a=>`<li><b>${a[0]}:</b> ${a[1]}</li>`).join("")}</ul></div>`:""}`}
 function renderUCard(){const st=document.getElementById("ustage");const L=uSeq();
- if(!L.length){st.innerHTML=uOnlyStar?`<div class="empty"><h3>Ingen stjernemerkede kort her</h3><p>Trykk på stjernen ☆ på et kort for å samle de du vil øve mer på.</p><button class="btn" id="unoStar">Vis alle kort</button></div>`:`<div class="empty">Ingen kort i denne kategorien.</div>`;const nb=document.getElementById("unoStar");if(nb)nb.onclick=()=>{uOnlyStar=false;uIdx=0;uOrder=null;renderUFilter();renderUCard()};return}
+ if(!L.length){st.innerHTML=(uOnlyStar||uOnlyKnown||uOnlyAgain)?`<div class="empty"><h3>Ingen kort her</h3><p>${uOnlyStar?"Trykk på stjernen ☆ på et kort for å samle de du vil øve mer på.":uOnlyKnown?"Trykk «Kan den ✓» på et kort, så havner det her.":"Du har markert alle kortene som «kan»."}</p><button class="btn" id="unoStar">Vis alle kort</button></div>`:`<div class="empty">Ingen kort i denne kategorien.</div>`;const nb=document.getElementById("unoStar");if(nb)nb.onclick=()=>{uOnlyStar=false;uOnlyKnown=false;uOnlyAgain=false;uIdx=0;uOrder=null;renderUFilter();renderUCard()};return}
  if(uIdx>=L.length)uIdx=0;if(uIdx<0)uIdx=L.length-1;const c=L[uIdx];const col=NEEDS[c.n[0]][1];
  const kindTxt=uMode==="T"?({p:"Problem / tilstand",v:"Verktøy, fysiologi eller tiltak",f:"Feberens faser"})[c.k]:(c.mix?"Flere behov er berørt. Hvilke sykepleiediagnoser kan du lage?":"Hvilken sykepleiediagnose passer?");
  let body;
  if(!uFlip){body=uMode==="T"?`<h3>${c.t}</h3><div class="kind">${kindTxt}</div><div class="tap">Trykk på kortet eller mellomrom for å snu</div>`
    :`<p class="q">${kindTxt}</p><ul class="finds">${c.front.map(f=>`<li>${f}</li>`).join("")}</ul><div class="tap">Tenk ut diagnose (problem + relatert til), mål og tiltak (når, hvem, hva, hvordan) før du snur</div>`}
  else body=`${uMode==="T"?`<h3 style="margin:4px 0 14px;font-size:24px">${c.t}</h3>`:""}<div class="ub">${uMode==="T"?backTerm(c):backScen(c)}</div>`;
- st.innerHTML=`<div class="u-prog"><span>${uIdx+1} / ${L.length}</span><span class="uacts"><button type="button" class="ustar" id="ustarcard" aria-pressed="${stars.has(uid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(uid(c))?"★":"☆"}</button><button type="button" id="ushuf">Bland</button></span></div>
+ st.innerHTML=`<div class="u-prog"><span>${uIdx+1} / ${L.length} · ${UFC[uMode].filter(x=>known.has(uid(x))).length} kan</span><button type="button" id="ushuf">Bland</button></div>
   <div class="ucard" id="ucard" tabindex="0" role="button" aria-label="Snu kortet" style="--uc:${col==="#FFFFFF"?"var(--line)":col}">
    <div class="side"><span>${uFlip?"Bakside":"Forside"}</span>${uFlip||uMode==="T"?dots(c.n):dot(c.n[0])}</div>${body}</div>
-  <div class="u-nav"><button class="btn" id="uprev">◀ Forrige</button><button class="btn primary" id="uflip">${uFlip?"Vis forsiden":"Snu kortet"}</button><button class="btn" id="unext">Neste ▶</button></div>`;
+  <div class="u-nav"><button class="btn" id="uprev">◀ Forrige</button><button class="btn again" id="uagain">Øv mer</button><button class="btn star" id="ustarcard" aria-pressed="${stars.has(uid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(uid(c))?"★":"☆"}</button><button class="btn primary" id="uflip">${uFlip?"Vis forsiden":"Snu kortet"}</button><button class="btn know" id="uknow">Kan den ✓</button><button class="btn" id="unext">Neste ▶</button></div>`;
  const flip=()=>{uFlip=!uFlip;renderUCard()};
  document.getElementById("ucard").onclick=e=>{if(e.target.closest("a"))return;flip()};
  document.getElementById("uflip").onclick=flip;
+ const saveK=()=>{S.set("syg-known",[...known]);savePrefs()};
+ document.getElementById("uknow").onclick=()=>{known.add(uid(c));saveK();uFlip=false;if(uOnlyAgain){uOrder=null}else uIdx++;renderUFilter();renderUCard()};
+ document.getElementById("uagain").onclick=()=>{known.delete(uid(c));saveK();uFlip=false;if(uOnlyKnown){uOrder=null}else uIdx++;renderUFilter();renderUCard()};
  document.getElementById("ustarcard").onclick=()=>{const id=uid(c);stars.has(id)?stars.delete(id):stars.add(id);S.set("syg-stars",[...stars]);savePrefs();renderUFilter();renderUCard()};
  document.getElementById("uprev").onclick=()=>{uIdx--;uFlip=false;renderUCard()};
  document.getElementById("unext").onclick=()=>{uIdx++;uFlip=false;renderUCard()};
