@@ -2285,6 +2285,12 @@ function renderCard(){
   document.getElementById("star").onclick=()=>{const id=cid(c),was=stars.has(id);was?stars.delete(id):stars.add(id);S.set("syg-stars",[...stars]);savePrefs();if(onlyStar&&was){order.splice(pos,1);if(pos>=order.length)pos=0}renderDecks();renderCard()};
   document.getElementById("again").onclick=()=>{known.delete(cid(c));S.set("syg-known",[...known]);savePrefs();if(onlyKnown){order.splice(pos,1)}else pos++;renderDecks();renderCard()};
 }
+// Sveip på mobil: venstre = neste, høyre = forrige
+(function(){const sw=(id,nx,pv)=>{const el=document.getElementById(id);if(!el)return;let x=0,y=0,t=0;
+ el.addEventListener("touchstart",e=>{if(e.touches.length!==1)return;x=e.touches[0].clientX;y=e.touches[0].clientY;t=Date.now()},{passive:true});
+ el.addEventListener("touchend",e=>{const c=e.changedTouches[0],dx=c.clientX-x,dy=c.clientY-y;if(Date.now()-t>800||Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.5)return;
+  if(window.getSelection&&String(getSelection()))return;document.getElementById(dx<0?nx:pv)?.click()},{passive:true})};
+ sw("stage","next","prev");sw("ustage","unext","uprev")})();
 document.addEventListener("keydown",e=>{if(document.getElementById("v-kort").hidden||e.target.tagName==="TEXTAREA")return;if(e.key==="ArrowRight")document.getElementById("next")?.click();if(e.key==="ArrowLeft")document.getElementById("prev")?.click()});
 
 // ---- Brukernavn (Firebase Firestore, uten passord) ----
