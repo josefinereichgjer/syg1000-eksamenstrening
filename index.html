@@ -2246,7 +2246,7 @@ document.addEventListener("keydown",e=>{if(document.getElementById("v-kort").hid
 
 // ---- Brukernavn (Firebase Firestore, uten passord) ----
 // Fyll inn verdiene fra Firebase-prosjektet ditt (se OPPSETT-BRUKERE.md). Er apiKey tom, skjules brukernavn og alt lagres i nettleseren.
-const FIREBASE_CONFIG={apiKey:"",projectId:"",appId:""};
+const FIREBASE_CONFIG={apiKey:"AIzaSyAbC8Sm8ITkYsryvOAU_tf4i-Yi2iE_3VY",authDomain:"syg1000-eksamenstrening.firebaseapp.com",projectId:"syg1000-eksamenstrening",appId:"1:436441709658:web:8b78172b86790792d5ac63"};
 const Acct={name:S.get("syg-user",""),db:null,timer:null};
 const acctNorm=v=>v.trim().toLowerCase().replace(/æ/g,"ae").replace(/ø/g,"o").replace(/å/g,"a").replace(/\s+/g,"-");
 const acctOk=n=>/^[a-z0-9_-]{3,30}$/.test(n);
