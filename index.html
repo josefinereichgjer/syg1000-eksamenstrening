@@ -2187,13 +2187,14 @@ renderList();renderCase();
 // Flashcards
 (function(){const D="Svikt mellom behov";const isG=c=>c[0]===D&&!/\(/.test(c[1]);const g=CARDS.filter(isG);const rest=CARDS.filter(c=>!isG(c));const i=rest.findIndex(c=>c[0]===D);if(i>=0)rest.splice(i,0,...g);else rest.push(...g);CARDS.length=0;CARDS.push(...rest)})();
 const cats=[...new Set(CARDS.map(c=>c[0]))];
-let deck="Alle", onlyAgain=false, order=[], pos=0;
+let deck="Alle", onlyAgain=false, onlyKnown=false, order=[], pos=0;
 let known=new Set(S.get("syg-known",[]));
 let stars=new Set(S.get("syg-stars",[])), onlyStar=false;
 const cid=c=>c[0]+"|"+c[1];
 function buildOrder(shuffle){
   let list=CARDS.filter(c=>deck==="Alle"||c[0]===deck);
   if(onlyAgain)list=list.filter(c=>!known.has(cid(c)));
+  if(onlyKnown)list=list.filter(c=>known.has(cid(c)));
   if(onlyStar)list=list.filter(c=>stars.has(cid(c)));
   order=list.slice(); if(shuffle){for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}}
   pos=0;
@@ -2204,10 +2205,12 @@ function renderDecks(){
   const LAST="Svikt mellom behov";
   const chipB=(d,extra)=>`<button class="chip${extra||""}" aria-pressed="${d===deck}" data-d="${d}">${d} <span style="opacity:.6">${count(d)}</span></button>`;
   el.innerHTML=`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">★</button>`+["Alle",...cats.filter(d=>d!==LAST&&d!=="Eksamen")].map(d=>chipB(d)).join("")+
-    `<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain">Bare de jeg ikke kan</button>`+
+    `<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain">Bare de jeg ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button>`+
+    `<button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown">Bare de jeg kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+
     (cats.includes(LAST)?chipB(LAST," svikt"):"");
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{deck=b.dataset.d;buildOrder(false);renderDecks();renderCard()});
-  document.getElementById("onlyAgain").onclick=()=>{onlyAgain=!onlyAgain;buildOrder(false);renderDecks();renderCard()};
+  document.getElementById("onlyKnown").onclick=()=>{onlyKnown=!onlyKnown;if(onlyKnown)onlyAgain=false;buildOrder(false);renderDecks();renderCard()};
+  document.getElementById("onlyAgain").onclick=()=>{onlyAgain=!onlyAgain;if(onlyAgain)onlyKnown=false;buildOrder(false);renderDecks();renderCard()};
   document.getElementById("onlyStar").onclick=()=>{onlyStar=!onlyStar;buildOrder(false);renderDecks();renderCard()};
 }
 function fmtBack(h){
@@ -2230,6 +2233,8 @@ function renderCard(){
   const k=inDeck.filter(c=>known.has(cid(c))).length;
   if(!order.length&&onlyStar){st.innerHTML=`<div class="empty"><h3>Ingen stjernemerkede kort her</h3><p>Trykk på stjernen ☆ på et kort for å samle de du vil øve mer på.</p><button class="btn" id="noStar">Vis alle kort</button></div>`;
     document.getElementById("noStar").onclick=()=>{onlyStar=false;buildOrder(false);renderDecks();renderCard()};return}
+  if(!order.length&&onlyKnown){st.innerHTML=`<div class="empty"><h3>Ingen kort markert som «kan» ennå</h3><p>Trykk «Kan den ✓» på et kort, så havner det her.</p><button class="btn" id="noKnown">Vis alle kort</button></div>`;
+    document.getElementById("noKnown").onclick=()=>{onlyKnown=false;buildOrder(false);renderDecks();renderCard()};return}
   if(!order.length){st.innerHTML=`<div class="empty"><h3>Ingen kort igjen her</h3><p>Du har markert alle kortene i denne bunken som «kan». Velg en annen bunke, eller nullstill.</p><button class="btn" id="reset">Nullstill bunken</button></div>`;
     document.getElementById("reset").onclick=()=>{inDeck.forEach(c=>known.delete(cid(c)));S.set("syg-known",[...known]);savePrefs();buildOrder(false);renderCard()};return}
   if(pos>=order.length)pos=0;
@@ -2247,9 +2252,9 @@ function renderCard(){
   document.getElementById("prev").onclick=()=>{pos=(pos-1+order.length)%order.length;renderCard()};
   document.getElementById("next").onclick=()=>{pos=(pos+1)%order.length;renderCard()};
   document.getElementById("shuf").onclick=()=>{buildOrder(true);renderCard()};
-  document.getElementById("know").onclick=()=>{known.add(cid(c));S.set("syg-known",[...known]);savePrefs();if(onlyAgain){order.splice(pos,1)}else pos++;renderCard()};
+  document.getElementById("know").onclick=()=>{known.add(cid(c));S.set("syg-known",[...known]);savePrefs();if(onlyAgain){order.splice(pos,1)}else pos++;renderDecks();renderCard()};
   document.getElementById("star").onclick=()=>{const id=cid(c),was=stars.has(id);was?stars.delete(id):stars.add(id);S.set("syg-stars",[...stars]);savePrefs();if(onlyStar&&was){order.splice(pos,1);if(pos>=order.length)pos=0}renderDecks();renderCard()};
-  document.getElementById("again").onclick=()=>{known.delete(cid(c));S.set("syg-known",[...known]);savePrefs();pos++;renderCard()};
+  document.getElementById("again").onclick=()=>{known.delete(cid(c));S.set("syg-known",[...known]);savePrefs();if(onlyKnown){order.splice(pos,1)}else pos++;renderDecks();renderCard()};
 }
 document.addEventListener("keydown",e=>{if(document.getElementById("v-kort").hidden||e.target.tagName==="TEXTAREA")return;if(e.key==="ArrowRight")document.getElementById("next")?.click();if(e.key==="ArrowLeft")document.getElementById("prev")?.click()});
 
@@ -2370,7 +2375,7 @@ initCloud();
     IDX.forEach(x=>{x.tl=x.t.toLowerCase();x.bl=x.b.toLowerCase();x.ml=(x.m||"").toLowerCase()});
   }
   function goCard(c){
-    show("kort"); deck=c[0]; onlyAgain=false; buildOrder(false);
+    show("kort"); deck=c[0]; onlyAgain=false; onlyKnown=false; buildOrder(false);
     const i=order.indexOf(c); pos=i<0?0:i; renderDecks(); renderCard();
     const el=document.getElementById("card"); el&&el.scrollIntoView({behavior:"smooth",block:"center"}); el&&el.classList.add("flash-hit");
   }
