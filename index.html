@@ -254,6 +254,8 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 .chip.starchip{align-self:center}
 .fc-bottom{justify-content:center;margin:70px 0 0}
 @media (max-width:720px){.fc-bottom{margin-top:36px}}
+.btn.chk{background:none!important;border:0!important;box-shadow:none!important;padding:0 6px;min-width:0;color:#2E9A55;display:inline-flex;align-items:center;justify-content:center}
+.btn.chk:hover{transform:scale(1.15);color:#237A43}
 .btn.star:hover,.chip.starchip:hover,.ustar:hover{transform:scale(1.15)}
 .ustar{background:none!important;border:0!important;box-shadow:none!important;padding:0 6px!important;font-size:26px!important;line-height:1;cursor:pointer;color:#F5CF4D!important;border-radius:0!important}
 .ustar[aria-pressed="true"]{color:#FFC400!important;text-shadow:0 0 1px #E0A500}
@@ -2256,7 +2258,7 @@ function renderCard(){
   <div class="card" id="card" tabindex="0" role="button" aria-label="Snu kortet"><div class="card-inner">
     <div class="face front"><span class="cat">${c[0]}${stars.has(cid(c))?`<span class="stbadge" title="Stjernemerket">★</span>`:""}</span><div class="front-q">${c[1]}</div><span class="tap">Trykk eller mellomrom for å snu</span></div>
     <div class="face back"><span class="cat">${c[0]}</span><div class="back-a">${fmtBack(c[2])}</div></div></div></div>
-  <div class="fc-actions"><button class="btn" id="prev">← Forrige</button><button class="btn again" id="again">Øv mer</button><button class="btn star" id="star" aria-pressed="${stars.has(cid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(cid(c))?"★":"☆"}</button><button class="btn know" id="know">Kan den ✓</button><button class="btn" id="next">Neste →</button><button class="btn" id="shuf">Stokk</button></div>`;
+  <div class="fc-actions"><button class="btn" id="prev">← Forrige</button><button class="btn again" id="again">Øv mer</button><button class="btn star" id="star" aria-pressed="${stars.has(cid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(cid(c))?"★":"☆"}</button><button class="btn know chk" id="know" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="next">Neste →</button><button class="btn" id="shuf">Stokk</button></div>`;
   const card=document.getElementById("card");
   const fit=()=>{const f=card.querySelectorAll(".face");let h=300;f.forEach(x=>{x.style.position="relative";h=Math.max(h,x.scrollHeight);x.style.position=""});card.querySelector(".card-inner").style.minHeight=h+"px";card.style.minHeight=h+"px"};fit();
   card.onclick=()=>card.classList.toggle("flipped");
@@ -2344,7 +2346,7 @@ function renderUCard(){const st=document.getElementById("ustage");const L=uSeq()
  st.innerHTML=`<div class="u-prog"><span>${uIdx+1} / ${L.length} · ${UFC[uMode].filter(x=>known.has(uid(x))).length} kan</span><button type="button" id="ushuf">Bland</button></div>
   <div class="ucard" id="ucard" tabindex="0" role="button" aria-label="Snu kortet" style="--uc:${col==="#FFFFFF"?"var(--line)":col}">
    <div class="side"><span>${uFlip?"Bakside":"Forside"}</span>${uFlip||uMode==="T"?dots(c.n):dot(c.n[0])}</div>${body}</div>
-  <div class="u-nav"><button class="btn" id="uprev">◀ Forrige</button><button class="btn again" id="uagain">Øv mer</button><button class="btn star" id="ustarcard" aria-pressed="${stars.has(uid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(uid(c))?"★":"☆"}</button><button class="btn primary" id="uflip">${uFlip?"Vis forsiden":"Snu kortet"}</button><button class="btn know" id="uknow">Kan den ✓</button><button class="btn" id="unext">Neste ▶</button></div>`;
+  <div class="u-nav"><button class="btn" id="uprev">◀ Forrige</button><button class="btn again" id="uagain">Øv mer</button><button class="btn star" id="ustarcard" aria-pressed="${stars.has(uid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(uid(c))?"★":"☆"}</button><button class="btn primary" id="uflip">${uFlip?"Vis forsiden":"Snu kortet"}</button><button class="btn know chk" id="uknow" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="unext">Neste ▶</button></div>`;
  const flip=()=>{uFlip=!uFlip;renderUCard()};
  document.getElementById("ucard").onclick=e=>{if(e.target.closest("a"))return;flip()};
  document.getElementById("uflip").onclick=flip;
