@@ -315,10 +315,10 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 .ub .tt{gap:12px}.ub .tt li{padding:0}
 .ub .tt li b{display:block;margin-bottom:2px}
 .ub .tt li span{color:var(--ink)}
-.ub .tt li span::before{content:"→ ";color:var(--green);font-weight:700}
+.ub .tt li span::before{content:"→ ";color:var(--green);font-weight:700;font-size:1.35em;line-height:1;vertical-align:-1px}
 .ub .tt li .tgx{display:inline-block;margin:2px 0 4px;font-style:normal;font-size:.72rem;font-weight:700;letter-spacing:.02em;padding:1px 9px;border-radius:99px}
 .ub .tt li .tgx.R{background:#EAEAF6;color:#4A4A8A}.ub .tt li .tgx.S{background:#E3F2E8;color:#216B3D}
-.ub .tt li .hw{margin:2px 0 6px;line-height:inherit;color:var(--ink)}.ub .tt li .hw u{text-decoration:none;font-weight:700;color:var(--muted,#667)}
+.ub .tt li .hw{margin:4px 0 14px;line-height:inherit;color:var(--ink)}.ub .tt li .hw u{text-decoration:none;font-weight:700;color:var(--muted,#667)}
 :root[data-theme="dark"] .ub .tt li .tgx.R{background:#2B2B4A;color:#C9C9F0}:root[data-theme="dark"] .ub .tt li .tgx.S{background:#1F3A2A;color:#A9E0BC}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ub .tt li .tgx.R{background:#2B2B4A;color:#C9C9F0}:root:not([data-theme="light"]) .ub .tt li .tgx.S{background:#1F3A2A;color:#A9E0BC}}
 
@@ -2328,7 +2328,7 @@ function renderUFilter(){const f=document.getElementById("ufilter");const keys=O
  f.querySelectorAll("[data-uf]").forEach(b=>b.onclick=()=>{uFilter=b.dataset.uf;S.set("u-filter",uFilter);uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()});
  document.querySelectorAll("[data-umode]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.umode===uMode));
  document.getElementById("ulegend").innerHTML=Object.keys(NEEDS).map(k=>`<span>${dot(k)}${NEEDS[k][0]}</span>`).join("")}
-function tiltakLi(t){return `<li><b>${t[0]}</b>${t[3]?`<em class="tgx ${t[3]}">${t[3]==="R"?"Reduserer krav":"Styrker ressurs"}</em>`:""}${t[2]?`<p class="hw">${t[2]}</p>`:""}<span>${t[1]}</span></li>`}
+function tiltakLi(t){return `<li><b>${t[0]}</b>${t[2]?`<p class="hw">${t[2]}</p>`:""}<span>${t[1]}</span></li>`}
 function backTerm(c){
  const h=[`<div><h4>Betyr</h4><p>${c.betyr}</p></div>`];
  if(c.k==="p"){
