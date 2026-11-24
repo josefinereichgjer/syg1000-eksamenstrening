@@ -2557,7 +2557,7 @@ initCloud();
 :root:not([data-theme="light"]) .vt{color:#9BE3AE}:root:not([data-theme="light"]) .vbad{color:#FFD9D3}:root:not([data-theme="light"]) .vw{color:#FFB4A8}
 :root:not([data-theme="light"]) .exs{background:rgba(124,92,220,.18)}:root:not([data-theme="light"]) .exs .vt{color:#CDB8FF}}</style>
 <script>document.documentElement.lang="nb"</script>
-<style>.gsec:not([open]){content-visibility:auto;contain-intrinsic-size:auto 96px}</style>
+
 <script>
 (function(){const b=document.getElementById("themeBtn");if(!b)return;const r=document.documentElement;const mq=matchMedia("(prefers-color-scheme: dark)");
  const cur=()=>r.getAttribute("data-theme")||(mq.matches?"dark":"light");
@@ -2601,4 +2601,14 @@ initCloud();
 html,body{background:var(--bg)!important}
 body::before{display:none!important}
 *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-</style></body></html>
+</style><style>
+@media (max-width:720px){
+ .fc-actions{gap:10px}
+ .fc-actions #again,.fc-actions #next{flex:1 1 44%;order:1;justify-content:center}
+ .fc-actions #next{order:2}
+ .fc-actions #prev{order:3}.fc-actions #star{order:4}.fc-actions #know{order:5}.fc-actions #shuf{order:6}
+ .topbar .searchbar{flex-basis:calc(100% - 58px);max-width:calc(100% - 58px)}
+ .themebtn{top:0!important;right:0!important}
+}
+</style>
+</body></html>
