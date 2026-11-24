@@ -2232,9 +2232,13 @@ function renderDecks(){
   const el=document.getElementById("decks");
   const count=d=>CARDS.filter(c=>d==="Alle"||c[0]===d).length;
   const LAST="Svikt mellom behov";
+  const BEHOV=["Grunnleggende behov","Respirasjon","Sirkulasjon","Temperatur","Væske og ernæring","Eliminasjon","Aktivitet","Søvn og hvile","Personlig hygiene","Seksualitet","Psykososiale behov"].filter(d=>cats.includes(d));
+  const inB=BEHOV.includes(deck);
+  const bsel=`<select class="chip bsel" id="bsel" aria-label="Grunnleggende behov: velg kategori" aria-pressed="${inB}"><option value="" ${inB?"":"selected"} disabled hidden>Grunnleggende behov</option>${BEHOV.map(d=>`<option value="${d}" ${d===deck?"selected":""}>${d===BEHOV[0]?"Grunnleggende behov (generelt)":d} (${count(d)})</option>`).join("")}</select>`;
   const chipB=(d,extra)=>`<button class="chip${extra||""}" aria-pressed="${d===deck}" data-d="${d}">${d} <span style="opacity:.6">${count(d)}</span></button>`;
-  el.innerHTML=`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+["Alle",...cats.filter(d=>d!==LAST&&d!=="Eksamen")].map(d=>chipB(d)).join("")+
+  el.innerHTML=`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+["Alle",...cats.filter(d=>d!==LAST&&d!=="Eksamen")].map(d=>BEHOV.includes(d)?chipB(d," bchip")+(d===BEHOV[0]?bsel:""):chipB(d)).join("")+
     (cats.includes(LAST)?chipB(LAST," svikt"):"");
+  const bs=document.getElementById("bsel");if(bs)bs.onchange=()=>{deck=bs.value;buildOrder(false);renderDecks();renderCard()};
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{deck=b.dataset.d;buildOrder(false);renderDecks();renderCard()});
   document.getElementById("onlyKnown").onclick=()=>{onlyKnown=!onlyKnown;if(onlyKnown){onlyAgain=false;deck="Alle"}buildOrder(false);renderDecks();renderCard()};
   document.getElementById("onlyAgain").onclick=()=>{onlyAgain=!onlyAgain;if(onlyAgain)onlyKnown=false;buildOrder(false);renderDecks();renderCard()};
@@ -2629,6 +2633,14 @@ body::before{display:none!important}
  .u-nav #uagain,.u-nav #unext{flex:1 1 44%;order:1;justify-content:center}
  .u-nav #unext{order:2}
  .u-nav #uprev{order:3}.u-nav #ustarcard{order:4}.u-nav #uknow{order:5}.u-nav #uflip{order:6}
+}
+</style>
+<style>
+.bsel{display:none}
+@media (max-width:720px){
+ .fc-top .bchip{display:none}
+ .fc-top .bsel{display:inline-block;appearance:none;-webkit-appearance:none;cursor:pointer;font:inherit;padding-right:30px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center}
+ .fc-top .bsel[aria-pressed="true"]{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center,linear-gradient(180deg,rgba(96,196,110,.95) 0%,rgba(52,140,70,.95) 100%);color:#fff;border-color:rgba(255,255,255,.4)}
 }
 </style>
 </body></html>
