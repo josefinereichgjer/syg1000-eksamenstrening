@@ -2611,4 +2611,16 @@ body::before{display:none!important}
  .themebtn{top:0!important;right:0!important}
 }
 </style>
+<style>
+@media (max-width:720px){
+ header.top>div{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
+ header.top .sync{margin-top:0}
+ header.top #acctBtn{padding:6px 14px;font-size:13px;min-height:0;white-space:nowrap}
+}
+</style>
+<script>
+(function(){const b=document.getElementById("acctBtn"),tb=document.querySelector(".topbar"),row=document.querySelector("header.top>div"),mq=matchMedia("(max-width:720px)");
+ if(!b||!tb||!row)return;const place=()=>{if(mq.matches){if(b.parentNode!==row)row.appendChild(b)}else if(b.parentNode!==tb)tb.appendChild(b)};
+ place();(mq.addEventListener?mq.addEventListener("change",place):mq.addListener(place))})();
+</script>
 </body></html>
