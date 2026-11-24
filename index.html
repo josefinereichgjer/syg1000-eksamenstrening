@@ -2699,7 +2699,8 @@ const QUIZ=[["Mikrobiologi", "Bakterier er en del av normalfloraen vår. Det bet
  let filter="Alle",shuffle=true,list=[],i=0,sel=new Set(),done=false,right=0,wrong=[],started=false;
  const esc=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;");
  const arr=()=>QUIZ.map((q,k)=>({k,t:q[0],q:q[1],o:q[2],c:q[3]}));
- function start(src){let L=src||arr().filter(q=>filter==="Alle"||q.t===filter);
+ const mix=q=>{const idx=q.o.map((_,k)=>k);for(let a=idx.length-1;a>0;a--){const b=Math.floor(Math.random()*(a+1));[idx[a],idx[b]]=[idx[b],idx[a]]}return Object.assign({},q,{o:idx.map(k=>q.o[k]),c:q.c.map(k=>idx.indexOf(k))})};
+ function start(src){let L=src||arr().filter(q=>filter==="Alle"||q.t===filter);L=L.map(mix);
   if(shuffle&&!src){L=L.slice();for(let a=L.length-1;a>0;a--){const b=Math.floor(Math.random()*(a+1));[L[a],L[b]]=[L[b],L[a]]}}
   list=L;i=0;sel=new Set();done=false;right=0;wrong=[];started=true;render()}
  function top(){const c=n=>arr().filter(q=>n==="Alle"||q.t===n).length;
