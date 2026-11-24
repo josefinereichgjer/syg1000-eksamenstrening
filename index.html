@@ -2260,9 +2260,12 @@ function renderCard(){
     <div class="face back"><span class="cat">${c[0]}</span><div class="back-a">${fmtBack(c[2])}</div></div></div></div>
   <div class="fc-actions"><button class="btn" id="prev">← Forrige</button><button class="btn again" id="again">Øv mer</button><button class="btn star" id="star" aria-pressed="${stars.has(cid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(cid(c))?"★":"☆"}</button><button class="btn know chk" id="know" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="next">Neste →</button><button class="btn" id="shuf">Stokk</button></div>`;
   const card=document.getElementById("card");
-  const fit=()=>{const f=card.querySelectorAll(".face");let h=300;f.forEach(x=>{x.style.position="relative";h=Math.max(h,x.scrollHeight);x.style.position=""});card.querySelector(".card-inner").style.minHeight=h+"px";card.style.minHeight=h+"px"};fit();
-  card.onclick=()=>card.classList.toggle("flipped");
-  card.onkeydown=e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();card.classList.toggle("flipped")}};
+  const hOf=sel=>{const x=card.querySelector(sel);x.style.position="relative";const h=Math.max(300,x.scrollHeight);x.style.position="";return h};
+  const frontH=hOf(".face.front"),backH=hOf(".face.back");
+  const setH=()=>{const h=card.classList.contains("flipped")?backH:frontH;card.querySelector(".card-inner").style.minHeight=h+"px";card.style.minHeight=h+"px"};setH();
+  const flipCard=()=>{card.classList.toggle("flipped");setH()};
+  card.onclick=flipCard;
+  card.onkeydown=e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();flipCard()}};
   document.getElementById("prev").onclick=()=>{pos=(pos-1+order.length)%order.length;renderCard()};
   document.getElementById("next").onclick=()=>{pos=(pos+1)%order.length;renderCard()};
   document.getElementById("shuf").onclick=()=>{buildOrder(true);renderCard()};
