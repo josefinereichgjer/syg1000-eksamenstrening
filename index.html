@@ -272,6 +272,7 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 .uacts{display:flex;align-items:center;gap:6px}
 .btn.star[aria-pressed="false"],.chip.starchip[aria-pressed="false"]{color:#F5CF4D}
 .btn.star[aria-pressed="true"],.chip.starchip[aria-pressed="true"]{color:#FFC400;text-shadow:0 0 1px #E0A500}
+.chip.starchip[aria-pressed="true"],#uonlystar[aria-pressed="true"],.u-prog #uonlystar[aria-pressed="true"]{background:#FFC400!important;color:#fff!important;text-shadow:0 0 2px rgba(150,100,0,.6);border-radius:999px!important;padding:2px 12px!important;box-shadow:0 0 0 2px rgba(255,196,0,.35)!important}
 .face .cat .stbadge{color:#C48A00;font-size:15px;margin-left:4px}
 #acctDlg{border:0;border-radius:16px;padding:22px 24px;width:min(420px,calc(100vw - 32px));background:var(--paper);color:var(--ink);box-shadow:0 18px 48px rgba(40,30,80,.28)}
 #acctDlg::backdrop{background:rgba(20,20,40,.4)}
@@ -2232,7 +2233,7 @@ function renderDecks(){
   const count=d=>CARDS.filter(c=>d==="Alle"||c[0]===d).length;
   const LAST="Svikt mellom behov";
   const chipB=(d,extra)=>`<button class="chip${extra||""}" aria-pressed="${d===deck}" data-d="${d}">${d} <span style="opacity:.6">${count(d)}</span></button>`;
-  el.innerHTML=`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">★</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+["Alle",...cats.filter(d=>d!==LAST&&d!=="Eksamen")].map(d=>chipB(d)).join("")+
+  el.innerHTML=`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+["Alle",...cats.filter(d=>d!==LAST&&d!=="Eksamen")].map(d=>chipB(d)).join("")+
     (cats.includes(LAST)?chipB(LAST," svikt"):"");
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{deck=b.dataset.d;buildOrder(false);renderDecks();renderCard()});
   document.getElementById("onlyKnown").onclick=()=>{onlyKnown=!onlyKnown;if(onlyKnown)onlyAgain=false;buildOrder(false);renderDecks();renderCard()};
@@ -2264,7 +2265,7 @@ function renderCard(){
     document.getElementById("reset").onclick=()=>{inDeck.forEach(c=>known.delete(cid(c)));S.set("syg-known",[...known]);savePrefs();buildOrder(false);renderCard()};return}
   if(pos>=order.length)pos=0;
   const c=order[pos];
-  st.innerHTML=`<div class="fc-progress"><span>Kort ${pos+1} av ${order.length}</span><span>${k} av ${inDeck.length} kan</span></div>
+  st.innerHTML=`<div class="fc-progress"><span>Kort ${pos+1} av ${order.length}${onlyStar?" · ★ bare stjernemerkede":""}</span><span>${k} av ${inDeck.length} kan</span></div>
   <div class="bar"><i style="width:${inDeck.length?Math.round(k/inDeck.length*100):0}%"></i></div>
   <div class="card" id="card" tabindex="0" role="button" aria-label="Snu kortet"><div class="card-inner">
     <div class="face front"><span class="cat">${c[0]}${stars.has(cid(c))?`<span class="stbadge" title="Stjernemerket">★</span>`:""}</span><div class="front-q">${c[1]}</div><span class="tap">Trykk eller mellomrom for å snu</span></div>
@@ -2329,7 +2330,7 @@ const uid=c=>"u:"+uMode+":"+UFC[uMode].indexOf(c);
 function uList(){const L=UFC[uMode];return L.filter(c=>(uFilter==="all"||c.n.includes(uFilter))&&(!uOnlyStar||stars.has(uid(c)))&&(!uOnlyKnown||known.has(uid(c)))&&(!uOnlyAgain||!known.has(uid(c))))}
 function uSeq(){const L=uList();if(!uOrder||uOrder.length!==L.length)uOrder=L.map((_,i)=>i);return uOrder.map(i=>L[i])}
 function renderUFilter(){const f=document.getElementById("ufilter");const keys=Object.keys(NEEDS).filter(k=>uMode==="T"||k!=="G");
- f.innerHTML=`<div class="ufrow"><button type="button" class="ustar" id="uonlystar" aria-pressed="${uOnlyStar}" title="Vis bare stjernemerkede" aria-label="Vis bare stjernemerkede kort">★</button><button type="button" data-uf="all" aria-pressed="${uFilter==="all"}">Alle</button></div><div class="ufrow2"><button type="button" id="uonlyagain" aria-pressed="${uOnlyAgain}" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span>${UFC[uMode].filter(c=>!known.has(uid(c))).length}</span></button><button type="button" id="uonlyknown" aria-pressed="${uOnlyKnown}" title="Vis bare kort jeg kan">Kan <span>${UFC[uMode].filter(c=>known.has(uid(c))).length}</span></button></div>`+keys.map(k=>`<button type="button" data-uf="${k}" aria-pressed="${uFilter===k}">${dot(k)}${NEEDS[k][0]}</button>`).join("");
+ f.innerHTML=`<div class="ufrow"><button type="button" class="ustar" id="uonlystar" aria-pressed="${uOnlyStar}" title="Vis bare stjernemerkede" aria-label="Vis bare stjernemerkede kort">${uOnlyStar?"★":"☆"}</button><button type="button" data-uf="all" aria-pressed="${uFilter==="all"}">Alle</button></div><div class="ufrow2"><button type="button" id="uonlyagain" aria-pressed="${uOnlyAgain}" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span>${UFC[uMode].filter(c=>!known.has(uid(c))).length}</span></button><button type="button" id="uonlyknown" aria-pressed="${uOnlyKnown}" title="Vis bare kort jeg kan">Kan <span>${UFC[uMode].filter(c=>known.has(uid(c))).length}</span></button></div>`+keys.map(k=>`<button type="button" data-uf="${k}" aria-pressed="${uFilter===k}">${dot(k)}${NEEDS[k][0]}</button>`).join("");
  document.getElementById("uonlystar").onclick=()=>{uOnlyStar=!uOnlyStar;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
  document.getElementById("uonlyagain").onclick=()=>{uOnlyAgain=!uOnlyAgain;if(uOnlyAgain)uOnlyKnown=false;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
  document.getElementById("uonlyknown").onclick=()=>{uOnlyKnown=!uOnlyKnown;if(uOnlyKnown)uOnlyAgain=false;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
