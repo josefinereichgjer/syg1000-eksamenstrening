@@ -2294,8 +2294,12 @@ const acctNorm=v=>v.trim().toLowerCase().replace(/æ/g,"ae").replace(/ø/g,"o").
 const acctOk=n=>/^[a-z0-9_-]{3,30}$/.test(n);
 function acctDoc(){return Acct.db.collection("users").doc(Acct.name)}
 function acctSave(){if(!Acct.name||!Acct.db)return;clearTimeout(Acct.timer);Acct.timer=setTimeout(()=>{acctDoc().set({known:[...known],stars:[...stars],updated:Date.now()}).then(()=>setSync("cloud","Lagret på «"+Acct.name+"»")).catch(()=>setSync("error","Kunne ikke lagre på brukernavnet, lagret i nettleseren"))},700)}
-async function acctLoad(){const n=Acct.name;try{const d=await acctDoc().get();if(Acct.name!==n)return;const v=d.exists?d.data():{};
-  known=new Set([...(v.known||[]),...known]);stars=new Set([...(v.stars||[]),...stars]);S.set("syg-known",[...known]);S.set("syg-stars",[...stars]);
+async function acctLoad(mode){const n=Acct.name;try{const d=await acctDoc().get();if(Acct.name!==n)return;const v=d.exists?d.data():{};
+  // mode "reset": bytter fra en annen bruker, så starter helt på den nye brukerens egne data.
+  // mode "adopt": første gang noen velger navn: finnes navnet fra før, brukes bare det som ligger lagret der; ellers tas dagens fremgang med.
+  if(mode==="reset"||(mode==="adopt"&&d.exists)){known=new Set(v.known||[]);stars=new Set(v.stars||[])}
+  else{known=new Set([...(v.known||[]),...known]);stars=new Set([...(v.stars||[]),...stars])}
+  if(mode==="reset"){pos=0}S.set("syg-known",[...known]);S.set("syg-stars",[...stars]);
   setSync("cloud","Lagret på «"+n+"»");buildOrder(false);renderDecks();renderCard();
   if(!d.exists||known.size!==(v.known||[]).length||stars.size!==(v.stars||[]).length)acctSave()}catch(e){setSync("error","Kunne ikke hente brukernavnet, lagret i nettleseren")}}
 function acctUI(){const b=document.getElementById("acctBtn");if(!b)return;b.hidden=false;b.textContent=Acct.name?"Bruker: "+Acct.name:"Velg brukernavn"}
@@ -2309,7 +2313,7 @@ function acctInit(){if(!FIREBASE_CONFIG.apiKey)return;
   btn.onclick=()=>{show("");inp.value=Acct.name;out.hidden=!Acct.name;dlg.showModal();inp.focus()};
   document.getElementById("acctForm").onsubmit=ev=>{ev.preventDefault();const n=acctNorm(inp.value);
     if(!acctOk(n)){show("Bruk 3–30 tegn: bokstaver, tall, - og _.");return}
-    Acct.name=n;S.set("syg-user",n);acctUI();dlg.close();acctLoad()};
+    const prev=Acct.name;Acct.name=n;S.set("syg-user",n);acctUI();dlg.close();if(n===prev)acctLoad();else{if(prev){known=new Set();stars=new Set();S.set("syg-known",[]);S.set("syg-stars",[]);S.set("syg-pos",null);buildOrder(false);renderDecks();renderCard();renderUFilter();renderUCard()}acctLoad(prev?"reset":"adopt")}};
   out.onclick=()=>{Acct.name="";S.set("syg-user","");acctUI();setSync("local","Lagret på denne enheten");dlg.close()};
   document.getElementById("acctX").onclick=()=>dlg.close();
   acctInit()})();
