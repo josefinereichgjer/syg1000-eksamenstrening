@@ -253,6 +253,7 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 .btn.star,.chip.starchip{background:none!important;border:0!important;box-shadow:none!important;padding:0 6px;min-width:0;color:#FFC400;font-size:26px;line-height:1;cursor:pointer}
 .chip.starchip{align-self:center}
 .fc-bottom{justify-content:center;margin:70px 0 0}
+@media (max-width:720px){.fc-bottom{margin-top:36px}}
 .btn.star:hover,.chip.starchip:hover,.ustar:hover{transform:scale(1.15)}
 .ustar{background:none!important;border:0!important;box-shadow:none!important;padding:0 6px!important;font-size:26px!important;line-height:1;cursor:pointer;color:#F5CF4D!important;border-radius:0!important}
 .ustar[aria-pressed="true"]{color:#FFC400!important;text-shadow:0 0 1px #E0A500}
@@ -2485,7 +2486,7 @@ initCloud();
 :root[data-theme="dark"] .themebtn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#F1ECFF}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .themebtn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#F1ECFF}}
 .topbar .tabs{margin-left:auto}
-@media (max-width:720px){.themebtn{position:absolute;right:16px;top:12px;width:40px;height:40px;font-size:18px}.topbar{position:relative}.topbar .searchbar{padding-right:52px}}
+@media (max-width:720px){.themebtn{position:absolute;right:16px;top:12px;width:40px;height:40px;font-size:18px}.topbar{position:relative}.topbar .searchbar{box-sizing:border-box;padding-right:0;flex-basis:calc(100% - 52px);max-width:calc(100% - 52px)}.searchbar kbd{display:none}}
 </style>
 <style>:root[data-theme="dark"] .vcol.ok{background:rgba(46,139,71,.16);border-color:#4CAF6A}
 :root[data-theme="dark"] .vcol.no{background:rgba(192,57,43,.16);border-color:#E06B5E}
