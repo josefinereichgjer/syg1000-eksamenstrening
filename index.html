@@ -2332,17 +2332,17 @@ function renderUFilter(){const f=document.getElementById("ufilter");const keys=O
  document.querySelectorAll("[data-umode]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.umode===uMode));
  document.getElementById("ulegend").innerHTML=Object.keys(NEEDS).map(k=>`<span>${dot(k)}${NEEDS[k][0]}</span>`).join("")}
 const KEYRX=/(ca\. \d+°|\d+° sideleie|minst \d+°|hver \d+\.–\d+\. time|hver \d+\. time|hver time|minst (?:to|tre|fire) ganger daglig|(?:to|tre) ganger daglig|flere ganger daglig|\d+–\d+ (?:ganger|sekunder|minutter)|\d+–\d+ minutter|(?:ca\. )?\d+(?:,\d+)?(?:–\d+(?:,\d+)?)? (?:liter|minutter|uker)|ca\. 30 ml per kg|1–2 kg|ISBAR|PEP-fløyte|fortykket drikke|myk eller moset mat|antitrombosestrømper|barrierekrem|blæreskanner|resturin|MNA|væskeliste|ernæringsplan|sengekanten|nattlys|rullatoren|ringeklokka|helt minutt|hever hodeenden|enkel plan|blir hos pasienten|teller pusten|gir (?:oksygen|febernedsettende|smertestillende|blodfortynnende|avføringsmiddel|soppmiddel|vanndrivende|fortykket drikke)|måler (?:SpO₂|puls|blodtrykk|temperaturen|resturin)|veies|veier|mobiliserer|skifter (?:sykepleieren )?pasientens stilling|munnstell|tilbyr drikke|bekkenbunnstrening|hosteteknikk|kostsamtale|dype åndedrag|fotøvelser|støttestrømper|trykkfordelende madrass|vasker (?:hendene|forfra og bakover)|straks|etter forordning|som forordnet|første dag|30 minutter før)/g;
-function tiltakLi(t){return `<li>${t[2]?`<p class="hw">${t[2].replace(KEYRX,"<b>$1</b>")}</p>`:`<b>${t[0]}</b>`}<span>${t[1]}</span></li>`}
+function tiltakLi(t,i){return `<li>${t[2]?`<p class="hw">${i+1}) ${t[2].replace(KEYRX,"<b>$1</b>")}</p>`:`<b>${t[0]}</b>`}<span>${t[1]}</span></li>`}
 function backTerm(c){
  const h=[`<div><h4>Betyr</h4><p>${c.betyr}</p></div>`];
  if(c.k==="p"){
   h.push(`<div><h4>Behov</h4><ul class="bh">${c.behov.map(b=>`<li>${dot(b[0])}<span><b>${NEEDS[b[0]][0]}:</b> ${b[1]}</span></li>`).join("")}</ul></div>`);
   h.push(`<div><h4>Tegn</h4><ul class="tg"><li><b>Subjektivt:</b> ${c.tegn[0]}</li><li><b>Objektivt:</b> ${c.tegn[1]}</li><li><b>Målinger:</b> ${c.tegn[2]}</li></ul></div>`);
   h.push(`<div><h4>Mål</h4><p>${c.mal}</p></div>`);
-  h.push(`<div><h4>Tiltak → begrunnelse</h4><ul class="tt">${c.tiltak.map(tiltakLi).join("")}</ul></div>`);if(c.ev)h.push(`<div><h4>Evaluering</h4><p>${c.ev}</p></div>`)}
+  h.push(`<div><h4>Tiltak → begrunnelse</h4><ul class="tt">${c.tiltak.map((t,i)=>tiltakLi(t,i)).join("")}</ul></div>`);if(c.ev)h.push(`<div><h4>Evaluering</h4><p>${c.ev}</p></div>`)}
  else if(c.k==="f"){
   h.push(`<div><h4>Tegn</h4><p>${c.tegn1}</p></div>`);
-  h.push(`<div><h4>Tiltak → begrunnelse</h4><ul class="tt">${c.tiltak.map(tiltakLi).join("")}</ul></div>`)}
+  h.push(`<div><h4>Tiltak → begrunnelse</h4><ul class="tt">${c.tiltak.map((t,i)=>tiltakLi(t,i)).join("")}</ul></div>`)}
  else{
   h.push(`<div><h4>Brukes når</h4><p>${c.brukes}</p></div>`);
   h.push(`<div><h4>Hvordan → hvorfor</h4><ul class="tt">${c.hvordan.map(t=>`<li><b>${t[0]}</b><span>${t[1]}</span></li>`).join("")}</ul></div>`)}
