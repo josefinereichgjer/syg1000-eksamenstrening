@@ -512,7 +512,7 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
       <button role="tab" id="t-caser" aria-selected="false" data-view="caser">Caser</button>
     </nav>
   <button type="button" class="themebtn" id="themeBtn"></button>
-  <button class="btn" id="acctBtn" type="button" hidden>Logg inn</button>
+  <button class="btn" id="acctBtn" type="button" hidden>Velg brukernavn</button>
   </div>
   <header class="top">
     <div>
@@ -778,7 +778,7 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
   <p class="foot">Casene er laget for trening og er fiktive. Løsningsforslagene er skrevet etter kriteriene for full uttelling i sensorveiledningen for ordinær eksamen 2025, med fagbegreper fra Kristoffersen mfl. (2021) bind 1–3, smittevernboka (kap. 5, 6 og 18) og Eide og Eide (kap. 4–5). Sidetallene er hentet fra sensorveiledningen og gjelder 4. utgave (2021).</p>
 </div>
 
-<dialog id="acctDlg"><form id="acctForm" novalidate><h3>Bruker</h3><p class="hint">Opprett en bruker for å lagre stjernemerkede flashcards og «kan»-status, slik at de følger deg hver gang du logger inn.</p><label>E-post<input id="acctEmail" type="email" autocomplete="email" required></label><label>Passord (minst 6 tegn)<input id="acctPw" type="password" autocomplete="current-password" required></label><p id="acctErr" class="hint" role="alert" hidden></p><div class="row"><button class="btn primary" id="acctIn" type="submit">Logg inn</button><button class="btn" id="acctUp" type="button">Opprett bruker</button><button class="btn" id="acctX" type="button">Avbryt</button></div></form></dialog>
+<dialog id="acctDlg"><form id="acctForm" novalidate><h3>Brukernavn</h3><p class="hint">Skriv inn et brukernavn for å lagre stjernemerkede flashcards og «kan»-status. Skriv samme navn på en annen enhet for å få dem tilbake. Det trengs ikke passord.</p><label>Brukernavn<input id="acctName" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" required></label><p class="hint" style="margin-top:8px">3–30 tegn: bokstaver, tall, - og _. Alle som kjenner navnet kan se og endre kortene dine, så velg et navn andre ikke gjetter, og ikke bruk fullt navn.</p><p id="acctErr" class="hint" role="alert" hidden></p><div class="row"><button class="btn primary" id="acctIn" type="submit">Fortsett</button><button class="btn" id="acctOut" type="button" hidden>Bytt bruker</button><button class="btn" id="acctX" type="button">Avbryt</button></div></form></dialog>
 
 <script>
 const CASES = [
@@ -2244,30 +2244,31 @@ function renderCard(){
 }
 document.addEventListener("keydown",e=>{if(document.getElementById("v-kort").hidden||e.target.tagName==="TEXTAREA")return;if(e.key==="ArrowRight")document.getElementById("next")?.click();if(e.key==="ArrowLeft")document.getElementById("prev")?.click()});
 
-// ---- Brukere (Firebase Auth + Firestore) ----
-// Fyll inn verdiene fra Firebase-prosjektet ditt. Er apiKey tom, skjules innloggingen og alt lagres i nettleseren.
-const FIREBASE_CONFIG={apiKey:"",authDomain:"",projectId:"",appId:""};
-const Acct={user:null,db:null,auth:null,timer:null};
-function acctMsg(e){const m={"auth/invalid-email":"Ugyldig e-postadresse.","auth/missing-password":"Skriv inn passord.","auth/weak-password":"Passordet må ha minst 6 tegn.","auth/email-already-in-use":"Det finnes allerede en bruker med denne e-posten. Logg inn i stedet.","auth/invalid-credential":"Feil e-post eller passord.","auth/user-not-found":"Feil e-post eller passord.","auth/wrong-password":"Feil e-post eller passord.","auth/too-many-requests":"For mange forsøk. Prøv igjen om litt.","auth/network-request-failed":"Ingen nettforbindelse."};return m[e&&e.code]||"Noe gikk galt. Prøv igjen."}
-function acctSave(){if(!Acct.user||!Acct.db)return;clearTimeout(Acct.timer);Acct.timer=setTimeout(()=>{Acct.db.collection("users").doc(Acct.user.uid).set({known:[...known],stars:[...stars],updated:Date.now()}).then(()=>setSync("cloud","Lagret på brukeren din")).catch(()=>setSync("error","Kunne ikke lagre på brukeren, lagret i nettleseren"))},700)}
-async function acctLoad(){const u=Acct.user;try{const d=await Acct.db.collection("users").doc(u.uid).get();if(!Acct.user||Acct.user.uid!==u.uid)return;const v=d.exists?d.data():{};
-  const k0=known.size,s0=stars.size;known=new Set([...(v.known||[]),...known]);stars=new Set([...(v.stars||[]),...stars]);S.set("syg-known",[...known]);S.set("syg-stars",[...stars]);
-  setSync("cloud","Lagret på brukeren din");buildOrder(false);renderDecks();renderCard();
-  if(!d.exists||known.size!==(v.known||[]).length||stars.size!==(v.stars||[]).length)acctSave()}catch(e){setSync("error","Kunne ikke hente brukeren din, lagret i nettleseren")}}
-function acctUI(){const b=document.getElementById("acctBtn");if(!b)return;b.hidden=false;b.textContent=Acct.user?"Logg ut ("+Acct.user.email+")":"Logg inn"}
+// ---- Brukernavn (Firebase Firestore, uten passord) ----
+// Fyll inn verdiene fra Firebase-prosjektet ditt (se OPPSETT-BRUKERE.md). Er apiKey tom, skjules brukernavn og alt lagres i nettleseren.
+const FIREBASE_CONFIG={apiKey:"",projectId:"",appId:""};
+const Acct={name:S.get("syg-user",""),db:null,timer:null};
+const acctNorm=v=>v.trim().toLowerCase().replace(/æ/g,"ae").replace(/ø/g,"o").replace(/å/g,"a").replace(/\s+/g,"-");
+const acctOk=n=>/^[a-z0-9_-]{3,30}$/.test(n);
+function acctDoc(){return Acct.db.collection("users").doc(Acct.name)}
+function acctSave(){if(!Acct.name||!Acct.db)return;clearTimeout(Acct.timer);Acct.timer=setTimeout(()=>{acctDoc().set({known:[...known],stars:[...stars],updated:Date.now()}).then(()=>setSync("cloud","Lagret på «"+Acct.name+"»")).catch(()=>setSync("error","Kunne ikke lagre på brukernavnet, lagret i nettleseren"))},700)}
+async function acctLoad(){const n=Acct.name;try{const d=await acctDoc().get();if(Acct.name!==n)return;const v=d.exists?d.data():{};
+  known=new Set([...(v.known||[]),...known]);stars=new Set([...(v.stars||[]),...stars]);S.set("syg-known",[...known]);S.set("syg-stars",[...stars]);
+  setSync("cloud","Lagret på «"+n+"»");buildOrder(false);renderDecks();renderCard();
+  if(!d.exists||known.size!==(v.known||[]).length||stars.size!==(v.stars||[]).length)acctSave()}catch(e){setSync("error","Kunne ikke hente brukernavnet, lagret i nettleseren")}}
+function acctUI(){const b=document.getElementById("acctBtn");if(!b)return;b.hidden=false;b.textContent=Acct.name?"Bruker: "+Acct.name:"Velg brukernavn"}
 function acctInit(){if(!FIREBASE_CONFIG.apiKey)return;
   const load=src=>new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)});
   const B="https://www.gstatic.com/firebasejs/10.12.2/";
-  const ready=window.firebase?Promise.resolve():load(B+"firebase-app-compat.js").then(()=>Promise.all([load(B+"firebase-auth-compat.js"),load(B+"firebase-firestore-compat.js")]));
-  ready.then(()=>{firebase.initializeApp(FIREBASE_CONFIG);Acct.auth=firebase.auth();Acct.db=firebase.firestore();acctUI();
-    Acct.auth.onAuthStateChanged(u=>{Acct.user=u||null;acctUI();if(u)acctLoad();else setSync("local","Lagret på denne enheten")})}).catch(()=>{})}
-(function(){const dlg=document.getElementById("acctDlg"),btn=document.getElementById("acctBtn"),err=document.getElementById("acctErr"),em=document.getElementById("acctEmail"),pw=document.getElementById("acctPw");if(!dlg||!btn)return;
+  const ready=window.firebase?Promise.resolve():load(B+"firebase-app-compat.js").then(()=>load(B+"firebase-firestore-compat.js"));
+  ready.then(()=>{firebase.initializeApp(FIREBASE_CONFIG);Acct.db=firebase.firestore();acctUI();if(Acct.name)acctLoad()}).catch(()=>{})}
+(function(){const dlg=document.getElementById("acctDlg"),btn=document.getElementById("acctBtn"),err=document.getElementById("acctErr"),inp=document.getElementById("acctName"),out=document.getElementById("acctOut");if(!dlg||!btn)return;
   const show=t=>{err.textContent=t||"";err.hidden=!t};
-  const go=async fn=>{show("");const e=em.value.trim(),p=pw.value;if(!e||!p){show("Skriv inn e-post og passord.");return}
-    try{await fn(e,p);pw.value="";dlg.close()}catch(x){show(acctMsg(x))}};
-  btn.onclick=()=>{if(Acct.user){Acct.auth.signOut()}else{show("");dlg.showModal();em.focus()}};
-  document.getElementById("acctForm").onsubmit=ev=>{ev.preventDefault();go((e,p)=>Acct.auth.signInWithEmailAndPassword(e,p))};
-  document.getElementById("acctUp").onclick=()=>go((e,p)=>Acct.auth.createUserWithEmailAndPassword(e,p));
+  btn.onclick=()=>{show("");inp.value=Acct.name;out.hidden=!Acct.name;dlg.showModal();inp.focus()};
+  document.getElementById("acctForm").onsubmit=ev=>{ev.preventDefault();const n=acctNorm(inp.value);
+    if(!acctOk(n)){show("Bruk 3–30 tegn: bokstaver, tall, - og _.");return}
+    Acct.name=n;S.set("syg-user",n);acctUI();dlg.close();acctLoad()};
+  out.onclick=()=>{Acct.name="";S.set("syg-user","");acctUI();setSync("local","Lagret på denne enheten");dlg.close()};
   document.getElementById("acctX").onclick=()=>dlg.close();
   acctInit()})();
 
