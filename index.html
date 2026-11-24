@@ -250,6 +250,9 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 .sync[data-state="cloud"]::before{background:var(--head-on-bg)}
 
 /* Stjernemerking og brukere */
+.btn.star{color:#C48A00;font-size:18px;line-height:1}
+.chip.starchip{color:#C48A00;font-size:17px;line-height:1;padding-inline:12px}
+.chip.starchip[aria-pressed="true"]{background:rgba(255,214,102,.55);border-color:#D9A515;color:#8A6100}
 .btn.star[aria-pressed="true"]{color:#8A6100;border-color:#D9A515;background:rgba(255,214,102,.55)}
 .face .cat .stbadge{color:#C48A00;font-size:15px;margin-left:4px}
 #acctDlg{border:0;border-radius:16px;padding:22px 24px;width:min(420px,calc(100vw - 32px));background:var(--paper);color:var(--ink);box-shadow:0 18px 48px rgba(40,30,80,.28)}
@@ -2193,9 +2196,8 @@ function renderDecks(){
   const count=d=>CARDS.filter(c=>d==="Alle"||c[0]===d).length;
   const LAST="Svikt mellom behov";
   const chipB=(d,extra)=>`<button class="chip${extra||""}" aria-pressed="${d===deck}" data-d="${d}">${d} <span style="opacity:.6">${count(d)}</span></button>`;
-  el.innerHTML=["Alle",...cats.filter(d=>d!==LAST&&d!=="Eksamen")].map(d=>chipB(d)).join("")+
+  el.innerHTML=`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">★</button>`+["Alle",...cats.filter(d=>d!==LAST&&d!=="Eksamen")].map(d=>chipB(d)).join("")+
     `<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain">Bare de jeg ikke kan</button>`+
-    `<button class="chip" aria-pressed="${onlyStar}" id="onlyStar">★ Stjernemerkede <span style="opacity:.6">${CARDS.filter(c=>stars.has(cid(c))).length}</span></button>`+
     (cats.includes(LAST)?chipB(LAST," svikt"):"");
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{deck=b.dataset.d;buildOrder(false);renderDecks();renderCard()});
   document.getElementById("onlyAgain").onclick=()=>{onlyAgain=!onlyAgain;buildOrder(false);renderDecks();renderCard()};
@@ -2219,7 +2221,7 @@ function renderCard(){
   const st=document.getElementById("stage");
   const inDeck=CARDS.filter(c=>deck==="Alle"||c[0]===deck);
   const k=inDeck.filter(c=>known.has(cid(c))).length;
-  if(!order.length&&onlyStar){st.innerHTML=`<div class="empty"><h3>Ingen stjernemerkede kort her</h3><p>Trykk «☆ Stjernemerk» på et kort for å samle de du vil øve mer på.</p><button class="btn" id="noStar">Vis alle kort</button></div>`;
+  if(!order.length&&onlyStar){st.innerHTML=`<div class="empty"><h3>Ingen stjernemerkede kort her</h3><p>Trykk på stjernen ☆ på et kort for å samle de du vil øve mer på.</p><button class="btn" id="noStar">Vis alle kort</button></div>`;
     document.getElementById("noStar").onclick=()=>{onlyStar=false;buildOrder(false);renderDecks();renderCard()};return}
   if(!order.length){st.innerHTML=`<div class="empty"><h3>Ingen kort igjen her</h3><p>Du har markert alle kortene i denne bunken som «kan». Velg en annen bunke, eller nullstill.</p><button class="btn" id="reset">Nullstill bunken</button></div>`;
     document.getElementById("reset").onclick=()=>{inDeck.forEach(c=>known.delete(cid(c)));S.set("syg-known",[...known]);savePrefs();buildOrder(false);renderCard()};return}
@@ -2230,7 +2232,7 @@ function renderCard(){
   <div class="card" id="card" tabindex="0" role="button" aria-label="Snu kortet"><div class="card-inner">
     <div class="face front"><span class="cat">${c[0]}${stars.has(cid(c))?`<span class="stbadge" title="Stjernemerket">★</span>`:""}</span><div class="front-q">${c[1]}</div><span class="tap">Trykk eller mellomrom for å snu</span></div>
     <div class="face back"><span class="cat">${c[0]}</span><div class="back-a">${fmtBack(c[2])}</div></div></div></div>
-  <div class="fc-actions"><button class="btn" id="prev">← Forrige</button><button class="btn again" id="again">Øv mer</button><button class="btn star" id="star" aria-pressed="${stars.has(cid(c))}">${stars.has(cid(c))?"★ Stjernemerket":"☆ Stjernemerk"}</button><button class="btn know" id="know">Kan den ✓</button><button class="btn" id="next">Neste →</button><button class="btn" id="shuf">Stokk</button></div>`;
+  <div class="fc-actions"><button class="btn" id="prev">← Forrige</button><button class="btn again" id="again">Øv mer</button><button class="btn star" id="star" aria-pressed="${stars.has(cid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(cid(c))?"★":"☆"}</button><button class="btn know" id="know">Kan den ✓</button><button class="btn" id="next">Neste →</button><button class="btn" id="shuf">Stokk</button></div>`;
   const card=document.getElementById("card");
   const fit=()=>{const f=card.querySelectorAll(".face");let h=300;f.forEach(x=>{x.style.position="relative";h=Math.max(h,x.scrollHeight);x.style.position=""});card.querySelector(".card-inner").style.minHeight=h+"px";card.style.minHeight=h+"px"};fit();
   card.onclick=()=>card.classList.toggle("flipped");
