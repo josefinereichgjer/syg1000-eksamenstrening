@@ -2236,7 +2236,7 @@ function renderDecks(){
   el.innerHTML=`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+["Alle",...cats.filter(d=>d!==LAST&&d!=="Eksamen")].map(d=>chipB(d)).join("")+
     (cats.includes(LAST)?chipB(LAST," svikt"):"");
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{deck=b.dataset.d;buildOrder(false);renderDecks();renderCard()});
-  document.getElementById("onlyKnown").onclick=()=>{onlyKnown=!onlyKnown;if(onlyKnown)onlyAgain=false;buildOrder(false);renderDecks();renderCard()};
+  document.getElementById("onlyKnown").onclick=()=>{onlyKnown=!onlyKnown;if(onlyKnown){onlyAgain=false;deck="Alle"}buildOrder(false);renderDecks();renderCard()};
   document.getElementById("onlyAgain").onclick=()=>{onlyAgain=!onlyAgain;if(onlyAgain)onlyKnown=false;buildOrder(false);renderDecks();renderCard()};
   document.getElementById("onlyStar").onclick=()=>{onlyStar=!onlyStar;buildOrder(false);renderDecks();renderCard()};
 }
