@@ -2153,7 +2153,7 @@ function show(v){views.forEach(x=>{document.getElementById("v-"+x).hidden=x!==v;
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.view));
 
 // Cases
-let current="edvard";
+let current="edvard";{const sc=S.get("syg-case","");if(sc&&typeof CASES!=="undefined"&&CASES.some(c=>c.id===sc))current=sc}
 if(!CASES.find(c=>c.id===current))current=CASES[0].id;
 function renderList(){
   const el=document.getElementById("caselist");
@@ -2366,7 +2366,19 @@ document.addEventListener("keydown",e=>{if(document.getElementById("v-utd").hidd
  if(e.key==="ArrowRight"){uIdx++;uFlip=false;renderUCard()}else if(e.key==="ArrowLeft"){uIdx--;uFlip=false;renderUCard()}else if(e.key===" "&&(e.target===document.body||e.target.id==="ucard")){e.preventDefault();uFlip=!uFlip;renderUCard()}});
 renderUFilter();renderUCard();
 buildOrder(false);renderDecks();renderCard();
-const startView=location.hash.replace("#","");show(views.includes(startView)?startView:"guide");
+(function(){ // husk hvor du var ved refresh
+ const P=S.get("syg-pos",null)||{};
+ let sv=location.hash.replace("#","");if(!views.includes(sv))sv=S.get("syg-view","guide");if(!views.includes(sv))sv="guide";
+ if(P.deck&&(P.deck==="Alle"||CARDS.some(c=>c[0]===P.deck))){deck=P.deck;onlyAgain=!!P.oa;onlyKnown=!!P.ok;onlyStar=!!P.os&&false;buildOrder(false);
+   if(P.cid){const i=order.findIndex(c=>cid(c)===P.cid);if(i>=0)pos=i}renderDecks();renderCard()}
+ if(Number.isInteger(P.u)&&P.u>0){uIdx=P.u;renderUCard()}
+ show(sv);
+ const y=(S.get("syg-scroll",{})||{})[sv];if(y)setTimeout(()=>window.scrollTo(0,y),60);
+ let t;window.addEventListener("scroll",()=>{clearTimeout(t);t=setTimeout(()=>{const v=S.get("syg-view","guide"),m=S.get("syg-scroll",{})||{};m[v]=Math.round(window.scrollY);S.set("syg-scroll",m)},250)},{passive:true});
+})();
+(function(){const save=()=>{try{S.set("syg-pos",{deck,oa:onlyAgain,ok:onlyKnown,cid:order[pos]?cid(order[pos]):null,u:uIdx})}catch(e){}};
+ const rc=renderCard;renderCard=function(){rc.apply(this,arguments);save()};
+ const ru=renderUCard;renderUCard=function(){ru.apply(this,arguments);save()};})();
 initCloud();
 (function(){const b=document.getElementById("gToggle");if(!b)return;const all=()=>[...document.querySelectorAll(".gsec")];
  const upd=()=>{b.textContent=all().every(d=>d.open)?"Lukk alle":"Åpne alle"};
