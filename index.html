@@ -2258,7 +2258,7 @@ function renderCard(){
   const k=inDeck.filter(c=>known.has(cid(c))).length;
   if(!order.length&&onlyStar){st.innerHTML=`<div class="empty"><h3>Ingen stjernemerkede kort her</h3><p>Trykk på stjernen ☆ på et kort for å samle de du vil øve mer på.</p><button class="btn" id="noStar">Vis alle kort</button></div>`;
     document.getElementById("noStar").onclick=()=>{onlyStar=false;buildOrder(false);renderDecks();renderCard()};return}
-  if(!order.length&&onlyKnown){st.innerHTML=`<div class="empty"><h3>Ingen kort markert som «kan» ennå</h3><p>Trykk «Kan den ✓» på et kort, så havner det her.</p><button class="btn" id="noKnown">Vis alle kort</button></div>`;
+  if(!order.length&&onlyKnown){st.innerHTML=`<div class="empty"><h3>Ingen kort markert som «kan» ennå</h3><p>Trykk «✓» på et kort, så havner det her.</p><button class="btn" id="noKnown">Vis alle kort</button></div>`;
     document.getElementById("noKnown").onclick=()=>{onlyKnown=false;buildOrder(false);renderDecks();renderCard()};return}
   if(!order.length){st.innerHTML=`<div class="empty"><h3>Ingen kort igjen her</h3><p>Du har markert alle kortene i denne bunken som «kan». Velg en annen bunke, eller nullstill.</p><button class="btn" id="reset">Nullstill bunken</button></div>`;
     document.getElementById("reset").onclick=()=>{inDeck.forEach(c=>known.delete(cid(c)));S.set("syg-known",[...known]);savePrefs();buildOrder(false);renderCard()};return}
@@ -2356,7 +2356,7 @@ function backScen(c){return `<div><h4>Sykepleiediagnose (${c.typ==="P"?"problem"
  <div><h4>Mål</h4>${Array.isArray(c.mal)?`<ul class="ml">${c.mal.map(m=>`<li>${m}</li>`).join("")}</ul>`:`<p>${c.mal}</p>`}</div>
  <div><h4>Tiltak → begrunnelse</h4><ul class="tt">${c.tiltak.map(t=>`<li><b>${t[0]}</b><span>${t[1]}</span></li>`).join("")}</ul></div>${c.andre?`<div><h4>Andre diagnoser fra forsiden</h4><ul class="ml">${c.andre.map(a=>`<li><b>${a[0]}:</b> ${a[1]}</li>`).join("")}</ul></div>`:""}`}
 function renderUCard(){const st=document.getElementById("ustage");const L=uSeq();
- if(!L.length){st.innerHTML=(uOnlyStar||uOnlyKnown||uOnlyAgain)?`<div class="empty"><h3>Ingen kort her</h3><p>${uOnlyStar?"Trykk på stjernen ☆ på et kort for å samle de du vil øve mer på.":uOnlyKnown?"Trykk «Kan den ✓» på et kort, så havner det her.":"Du har markert alle kortene som «kan»."}</p><button class="btn" id="unoStar">Vis alle kort</button></div>`:`<div class="empty">Ingen kort i denne kategorien.</div>`;const nb=document.getElementById("unoStar");if(nb)nb.onclick=()=>{uOnlyStar=false;uOnlyKnown=false;uOnlyAgain=false;uIdx=0;uOrder=null;renderUFilter();renderUCard()};return}
+ if(!L.length){st.innerHTML=(uOnlyStar||uOnlyKnown||uOnlyAgain)?`<div class="empty"><h3>Ingen kort her</h3><p>${uOnlyStar?"Trykk på stjernen ☆ på et kort for å samle de du vil øve mer på.":uOnlyKnown?"Trykk «✓» på et kort, så havner det her.":"Du har markert alle kortene som «kan»."}</p><button class="btn" id="unoStar">Vis alle kort</button></div>`:`<div class="empty">Ingen kort i denne kategorien.</div>`;const nb=document.getElementById("unoStar");if(nb)nb.onclick=()=>{uOnlyStar=false;uOnlyKnown=false;uOnlyAgain=false;uIdx=0;uOrder=null;renderUFilter();renderUCard()};return}
  if(uIdx>=L.length)uIdx=0;if(uIdx<0)uIdx=L.length-1;const c=L[uIdx];const col=NEEDS[c.n[0]][1];
  const kindTxt=uMode==="T"?({p:"Problem / tilstand",v:"Verktøy, fysiologi eller tiltak",f:"Feberens faser"})[c.k]:(c.mix?"Flere behov er berørt. Hvilke sykepleiediagnoser kan du lage?":"Hvilken sykepleiediagnose passer?");
  let body;
