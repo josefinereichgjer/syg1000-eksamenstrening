@@ -546,7 +546,6 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
       <button role="tab" id="t-caser" aria-selected="false" data-view="caser">Caser</button>
       <button role="tab" id="t-quiz" aria-selected="false" data-view="quiz">Quiz</button>
     </nav>
-  <button type="button" class="themebtn" id="themeBtn"></button>
   <button class="btn" id="acctBtn" type="button" hidden>Bruker</button>
   </div>
   <header class="top">
@@ -2572,7 +2571,7 @@ initCloud();
 :root[data-theme="dark"] .themebtn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#F1ECFF}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .themebtn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#F1ECFF}}
 .topbar .tabs{margin-left:auto}
-@media (max-width:720px){.themebtn{position:absolute;right:16px;top:12px;width:40px;height:40px;font-size:18px}.topbar{position:relative}.topbar .searchbar{box-sizing:border-box;padding-right:0;flex-basis:calc(100% - 52px);max-width:calc(100% - 52px)}.searchbar kbd{display:none}}
+@media (max-width:720px){.searchbar kbd{display:none}}
 </style>
 <style>:root[data-theme="dark"] .vcol.ok{background:rgba(46,139,71,.16);border-color:#4CAF6A}
 :root[data-theme="dark"] .vcol.no{background:rgba(192,57,43,.16);border-color:#E06B5E}
@@ -2589,11 +2588,7 @@ initCloud();
 <script>document.documentElement.lang="nb"</script>
 
 <script>
-(function(){const b=document.getElementById("themeBtn");if(!b)return;const r=document.documentElement;const mq=matchMedia("(prefers-color-scheme: dark)");
- const cur=()=>r.getAttribute("data-theme")||(mq.matches?"dark":"light");
- const upd=()=>{const d=cur()==="dark";b.textContent=d?"☀︎":"☾";b.setAttribute("aria-label",d?"Bytt til lys modus":"Bytt til mørk modus");b.title=b.getAttribute("aria-label")};
- b.onclick=()=>{const n=cur()==="dark"?"light":"dark";r.setAttribute("data-theme",n);upd()};
- mq.addEventListener&&mq.addEventListener("change",upd);upd()})();
+
 </script>
 <div id="welcome" hidden role="status" aria-live="polite"><canvas id="fw"></canvas><div class="wtxt">VELKOMMEN!!!</div></div>
 <style>
@@ -2637,8 +2632,6 @@ body::before{display:none!important}
  .fc-actions #again,.fc-actions #next{flex:1 1 44%;order:1;justify-content:center}
  .fc-actions #next{order:2}
  .fc-actions #prev{order:3}.fc-actions #star{order:4}.fc-actions #know{order:5}.fc-actions #shuf{order:6}
- .topbar .searchbar{flex-basis:calc(100% - 58px);max-width:calc(100% - 58px)}
- .themebtn{top:0!important;right:0!important}
 }
 </style>
 <style>
