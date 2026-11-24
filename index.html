@@ -252,6 +252,7 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 /* Stjernemerking og brukere */
 .btn.star,.chip.starchip{background:none!important;border:0!important;box-shadow:none!important;padding:0 6px;min-width:0;color:#FFC400;font-size:26px;line-height:1;cursor:pointer}
 .chip.starchip{align-self:center}
+.fc-bottom{justify-content:center;margin:26px 0 0}
 .btn.star:hover,.chip.starchip:hover,.ustar:hover{transform:scale(1.15)}
 .ustar{background:none!important;border:0!important;box-shadow:none!important;padding:0 6px!important;font-size:26px!important;line-height:1;cursor:pointer;color:#F5CF4D!important;border-radius:0!important}
 .ustar[aria-pressed="true"]{color:#FFC400!important;text-shadow:0 0 1px #E0A500}
@@ -545,6 +546,7 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
   <section id="v-kort">
     <div class="fc-top" id="decks"></div>
     <div class="fc-stage" id="stage"></div>
+    <div class="fc-top fc-bottom" id="decksBottom"></div>
   </section>
 
   <section id="v-utd" hidden>
@@ -2205,9 +2207,8 @@ function renderDecks(){
   const LAST="Svikt mellom behov";
   const chipB=(d,extra)=>`<button class="chip${extra||""}" aria-pressed="${d===deck}" data-d="${d}">${d} <span style="opacity:.6">${count(d)}</span></button>`;
   el.innerHTML=`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">★</button>`+["Alle",...cats.filter(d=>d!==LAST&&d!=="Eksamen")].map(d=>chipB(d)).join("")+
-    `<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain">Bare de jeg ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button>`+
-    `<button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown">Bare de jeg kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+
     (cats.includes(LAST)?chipB(LAST," svikt"):"");
+  document.getElementById("decksBottom").innerHTML=`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain">Bare de jeg ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button>`+`<button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown">Bare de jeg kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`;
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{deck=b.dataset.d;buildOrder(false);renderDecks();renderCard()});
   document.getElementById("onlyKnown").onclick=()=>{onlyKnown=!onlyKnown;if(onlyKnown)onlyAgain=false;buildOrder(false);renderDecks();renderCard()};
   document.getElementById("onlyAgain").onclick=()=>{onlyAgain=!onlyAgain;if(onlyAgain)onlyKnown=false;buildOrder(false);renderDecks();renderCard()};
