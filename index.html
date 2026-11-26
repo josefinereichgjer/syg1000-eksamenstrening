@@ -2704,7 +2704,7 @@ const QUIZ=[["SYG1000", "Hva er riktig rekkefølge i sykepleieprosessen?", ["Dat
   if(shuffle&&!src){L=L.slice();for(let a=L.length-1;a>0;a--){const b=Math.floor(Math.random()*(a+1));[L[a],L[b]]=[L[b],L[a]]}}
   list=L;i=0;sel=new Set();done=false;right=0;wrong=[];started=true;render()}
  function top(){const c=n=>arr().filter(q=>n==="Alle"||q.t===n).length;
-  document.getElementById("qztop").innerHTML=["Alle","SYG1000","Mikrobiologi","Smittevern"].map(n=>`<button class="chip" type="button" data-f="${n}" aria-pressed="${n===filter}">${n} ${c(n)}</button>`).join("")+`<span class="sp"></span><button class="chip" type="button" id="qzsh" aria-pressed="${shuffle}">Bland</button>`;
+  document.getElementById("qztop").innerHTML=["Alle","SYG1000","Mikrobiologi","Smittevern"].map(n=>`<button class="chip" type="button" data-f="${n}" aria-pressed="${n===filter}">${n}${n==="SYG1000"?"":" "+c(n)}</button>`).join("")+`<span class="sp"></span><button class="chip" type="button" id="qzsh" aria-pressed="${shuffle}">Bland</button>`;
   document.querySelectorAll("#qztop [data-f]").forEach(b=>b.onclick=()=>{filter=b.dataset.f;start()});
   document.getElementById("qzsh").onclick=()=>{shuffle=!shuffle;start()}}
  function render(){top();const st=document.getElementById("qzstage");
