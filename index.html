@@ -860,6 +860,7 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
 <div class="imgrow" data-side="q"><img alt="Bilde på forsiden" hidden><button type="button" class="btn imgadd">+ Bilde på forsiden</button><button type="button" class="btn imgdel" hidden>Fjern bildet</button><span class="hint imgmsg"></span><input type="file" accept="image/*" hidden></div>
 <label id="mineAL" for="mineA">Svar (baksiden)</label><div class="rte" id="mineA" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="mineAL"></div>
 <div class="imgrow" data-side="a"><img alt="Bilde på baksiden" hidden><button type="button" class="btn imgadd">+ Bilde på baksiden</button><button type="button" class="btn imgdel" hidden>Fjern bildet</button><span class="hint imgmsg"></span><input type="file" accept="image/*" hidden></div>
+<div id="mineCatWrap" hidden><label for="mineCat">Kategori</label><select id="mineCat" class="minecat"></select></div>
 <div id="uCatWrap" hidden><label>Kategori (velg ett eller flere behov)</label><div class="ucats" id="uCats"></div></div>
 <p class="hint" id="mineHelp">Marker tekst, og velg fet skrift eller en farge. Du kan også lime inn et bilde i et av feltene.</p>
 <p class="hint" id="mineNote"></p>
@@ -2290,7 +2291,7 @@ renderList();renderCase();
 (function(){const D="Svikt mellom behov";const isG=c=>c[0]===D&&!/\(/.test(c[1]);const g=CARDS.filter(isG);const rest=CARDS.filter(c=>!isG(c));const i=rest.findIndex(c=>c[0]===D);if(i>=0)rest.splice(i,0,...g);else rest.push(...g);CARDS.length=0;CARDS.push(...rest)})();
 const cats=[...new Set(CARDS.map(c=>c[0]))];
 const PICK="Valgte temaer";let picked=new Set(S.get("syg-picked",[])),pickOpen=false;
-const inD=(c,d)=>d==="Alle"||(d===PICK?picked.has(c[0]):c[0]===d);
+const inD=(c,d)=>d==="Alle"||(d==="Mine kort"&&c[3]&&c[3].own)||(d===PICK?picked.has(c[0]):c[0]===d);
 let deck="Alle", onlyAgain=false, onlyKnown=false, order=[], pos=0;
 let known=new Set(S.get("syg-known",[]));
 let stars=new Set(S.get("syg-stars",[])), onlyStar=false;
@@ -2406,7 +2407,7 @@ document.addEventListener("keydown",e=>{if(document.getElementById("v-kort").hid
 const MINE="Mine kort";
 const escH=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 // h:1 = formatert tekst (fet/markering). o = id til et innebygd kort som er redigert (ikke et eget kort).
-const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>{const r={id:m.id.slice(0,40),q:m.h?richClean(m.q).slice(0,2000):m.q.slice(0,300),a:m.h?richClean(m.a).slice(0,8000):m.a.slice(0,1500),t:+m.t||0};if(m.h)r.h=1;if(m.x)r.x=1;if(typeof m.o==="string")r.o=m.o.slice(0,600);if(m.u==="T"||m.u==="SC")r.u=m.u;if(typeof m.n==="string"&&/^[RSTVEAOHXG]{1,10}$/.test(m.n))r.n=m.n;["qi","ai"].forEach(k=>{const v=m[k];if(v&&typeof v.id==="string"&&/^[a-z0-9]{4,40}$/.test(v.id))r[k]={id:v.id,w:+v.w||0,h:+v.h||0}});return r}).slice(0,500);
+const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>{const r={id:m.id.slice(0,40),q:m.h?richClean(m.q).slice(0,2000):m.q.slice(0,300),a:m.h?richClean(m.a).slice(0,8000):m.a.slice(0,1500),t:+m.t||0};if(m.h)r.h=1;if(m.x)r.x=1;if(typeof m.o==="string")r.o=m.o.slice(0,600);if(m.u==="T"||m.u==="SC")r.u=m.u;if(typeof m.c==="string"&&m.c.length<=60)r.c=m.c;if(typeof m.n==="string"&&/^[RSTVEAOHXG]{1,10}$/.test(m.n))r.n=m.n;["qi","ai"].forEach(k=>{const v=m[k];if(v&&typeof v.id==="string"&&/^[a-z0-9]{4,40}$/.test(v.id))r[k]={id:v.id,w:+v.w||0,h:+v.h||0}});return r}).slice(0,500);
 // Formatert tekst: bare fet skrift, fargemarkering, avsnitt og lister slipper gjennom.
 const HL={g:"#D7ECCB",b:"#D6E4F4",r:"#F6DCE4",l:"#E6DDF3",y:"#F5EBB5"};
 const HLRGB={};Object.entries(HL).forEach(([k,v])=>{const n=parseInt(v.slice(1),16);HLRGB[`rgb(${n>>16}, ${n>>8&255}, ${n&255})`]=k});
@@ -2469,7 +2470,8 @@ function mineSync(){
   mine.forEach(m=>{if(!m.u&&m.o&&m.x)HIDDEN.set(m.o,m)});
   CARDS.length=0;BASE.forEach(c=>{if(!HIDDEN.has(cid(c)))CARDS.push(c)});
   mine.forEach(m=>{if(m.x||m.u)return;if(m.o){EDITS.set(m.o,m);return}
-    CARDS.push(m.h?[MINE,m.q,m.a,{own:m.id,html:1}]:[MINE,escH(m.q),escH(m.a).replace(/\n+/g,"<br>"),{own:m.id}])});
+    const k=m.c&&cats.includes(m.c)?m.c:MINE;
+    CARDS.push(m.h?[k,m.q,m.a,{own:m.id,html:1}]:[k,escH(m.q),escH(m.a).replace(/\n+/g,"<br>"),{own:m.id}])});
   if(window.searchReset)searchReset();
   if(typeof uRebuild==="function")uRebuild();
 }
@@ -2495,6 +2497,12 @@ function mineOpen(id){uDlgReset();
   document.getElementById("mineQ").innerHTML=m?(m.h?richToEditor(m.q):plainToEditor(m.q)):"";document.getElementById("mineA").innerHTML=m?(m.h?richToEditor(m.a):plainToEditor(m.a)):"";
   document.getElementById("mineDel").hidden=!m;document.getElementById("mineReset").hidden=true;document.getElementById("mineErr").hidden=true;
   document.getElementById("mineNote").textContent=Acct.uid?"Kortet lagres på brukeren «"+Acct.name+"».":"Du er ikke logget inn, så kortet lagres bare i denne nettleseren.";
+  const BH=["Grunnleggende behov","Respirasjon","Sirkulasjon","Temperatur","Væske og ernæring","Eliminasjon","Aktivitet","Søvn og hvile","Personlig hygiene","Seksualitet","Psykososiale behov"].filter(d=>cats.includes(d));
+  const OT=cats.filter(d=>!BH.includes(d)&&d!=="Eksamen"&&d!==MINE);
+  const cur=m?(m.c&&cats.includes(m.c)?m.c:MINE):(cats.includes(deck)&&deck!=="Eksamen"?deck:MINE);
+  const op=d=>`<option value="${escH(d)}"${d===cur?" selected":""}>${escH(d)}</option>`;
+  document.getElementById("mineCat").innerHTML=`<option value="${MINE}"${cur===MINE?" selected":""}>Ingen kategori (bare i «Mine kort»)</option><optgroup label="Grunnleggende behov">${BH.map(op).join("")}</optgroup><optgroup label="Andre temaer">${OT.map(op).join("")}</optgroup>`;
+  document.getElementById("mineCatWrap").hidden=false;
   dlgImgLoad(m);dlg.showModal();document.getElementById("mineQ").focus();
 }
 // Rediger et innebygd kort: endringen lagres som din egen versjon, originalen ligger urørt.
@@ -2522,8 +2530,9 @@ function editOpen(c){uDlgReset();
       mineChanged();dlg.close();renderCard();return}
     if(!mineEditing&&mine.length>=500){err("Du kan ha opptil 500 egne kort.");return}
     let id=mineEditing;
-    if(id){const m=mine.find(x=>x.id===id);m.q=q;m.a=a;m.h=1;m.t=Date.now();await setImgs(m,{qi:m.qi,ai:m.ai})}
-    else{id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);const n={id,q,a,h:1,t:Date.now()};await setImgs(n,null);mine.push(n)}
+    const cv=document.getElementById("mineCat").value,setC=m=>{if(cv&&cv!==MINE&&cats.includes(cv))m.c=cv;else delete m.c};
+    if(id){const m=mine.find(x=>x.id===id);m.q=q;m.a=a;m.h=1;m.t=Date.now();setC(m);await setImgs(m,{qi:m.qi,ai:m.ai})}
+    else{id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);const n={id,q,a,h:1,t:Date.now()};setC(n);await setImgs(n,null);mine.push(n)}
     mineChanged();dlg.close();
     deck=MINE;onlyAgain=false;onlyKnown=false;onlyStar=false;buildOrder(false);
     const k=order.findIndex(c=>c[3]&&c[3].own===id);pos=k<0?0:k;renderDecks();renderCard()};
@@ -2717,7 +2726,7 @@ document.addEventListener("keydown",e=>{if(document.getElementById("v-utd").hidd
 // ---- Redigeringsvindu for utdypende kort (bruker samme vindu som flashcards) ----
 let uDlg=null;
 const LBL={q:"Spørsmål (forsiden)",a:"Svar (baksiden)"};
-function uDlgReset(){uDlg=null;document.getElementById("uCatWrap").hidden=true;document.querySelectorAll("#mineDlg .imgrow").forEach(r=>r.hidden=false);
+function uDlgReset(){uDlg=null;document.getElementById("uCatWrap").hidden=true;document.getElementById("mineCatWrap").hidden=true;document.querySelectorAll("#mineDlg .imgrow").forEach(r=>r.hidden=false);
   document.getElementById("mineQL").textContent=LBL.q;document.getElementById("mineAL").textContent=LBL.a;
   document.getElementById("mineHelp").textContent="Marker tekst, og velg fet skrift eller en farge. Du kan også lime inn et bilde i et av feltene."}
 const toRich=h=>richClean(String(h).replace(/<h4>(.*?)<\/h4>/g,"<p><b>$1</b></p>").replace(/<p class="hw">/g,"<p>"));
@@ -2735,7 +2744,7 @@ function uOpen(c){const dlg=document.getElementById("mineDlg");mineEditing=null;
   if(own){q=own.q;a=own.a}else if(ed){q=ed.q;a=ed.a}
   else if(c){q=uMode==="T"?escH(plainOf(c.t)):richClean(`<ul>${c.front.map(f=>`<li>${f}</li>`).join("")}</ul>`);a=toRich(uMode==="T"?backTerm(c):backScen(c))}
   document.getElementById("mineQ").innerHTML=richToEditor(q);document.getElementById("mineA").innerHTML=richToEditor(a);
-  document.querySelectorAll("#mineDlg .imgrow").forEach(r=>r.hidden=true);document.getElementById("uCatWrap").hidden=false;uCatsRender(uDlg.n);
+  document.querySelectorAll("#mineDlg .imgrow").forEach(r=>r.hidden=true);document.getElementById("uCatWrap").hidden=false;document.getElementById("mineCatWrap").hidden=true;uCatsRender(uDlg.n);
   document.getElementById("mineDel").hidden=!c;document.getElementById("mineReset").hidden=!ed;document.getElementById("mineErr").hidden=true;
   document.getElementById("mineNote").textContent=(Acct.uid?"Lagres på brukeren «"+Acct.name+"».":"Du er ikke logget inn, så det lagres bare i denne nettleseren.")+(uDlg.base?" Originalen kan hentes tilbake med «Tilbakestill».":"");
   dlg.showModal();document.getElementById(c?"mineA":"mineQ").focus()}
@@ -3214,5 +3223,7 @@ document.getElementById("delX").onclick=()=>document.getElementById("delDlg").cl
 .qz-top .chip.qzthbtn:hover{background:#D5ECD8}
 .qz-top .chip.qzthbtn[aria-pressed="true"]{border-color:#5FB06D;font-weight:600}
 .qzmf{align-items:center}.qzmh{font-size:13px;color:var(--muted);padding-left:6px}
+
+#mineDlg .minecat{display:block;width:100%;margin-top:4px;font:inherit;font-size:16px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
 </style>
 </body></html>
