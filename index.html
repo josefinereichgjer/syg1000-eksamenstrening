@@ -860,7 +860,8 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
 <div class="imgrow" data-side="q"><img alt="Bilde på forsiden" hidden><button type="button" class="btn imgadd">+ Bilde på forsiden</button><button type="button" class="btn imgdel" hidden>Fjern bildet</button><span class="hint imgmsg"></span><input type="file" accept="image/*" hidden></div>
 <label id="mineAL" for="mineA">Svar (baksiden)</label><div class="rte" id="mineA" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="mineAL"></div>
 <div class="imgrow" data-side="a"><img alt="Bilde på baksiden" hidden><button type="button" class="btn imgadd">+ Bilde på baksiden</button><button type="button" class="btn imgdel" hidden>Fjern bildet</button><span class="hint imgmsg"></span><input type="file" accept="image/*" hidden></div>
-<p class="hint">Marker tekst, og velg fet skrift eller en farge. Du kan også lime inn et bilde i et av feltene.</p>
+<div id="uCatWrap" hidden><label>Kategori (velg ett eller flere behov)</label><div class="ucats" id="uCats"></div></div>
+<p class="hint" id="mineHelp">Marker tekst, og velg fet skrift eller en farge. Du kan også lime inn et bilde i et av feltene.</p>
 <p class="hint" id="mineNote"></p>
 <p id="mineErr" class="hint aerr" role="alert" hidden></p>
 <div class="row"><button class="btn primary" type="submit" id="mineSave">Lagre kortet</button><button class="btn" id="mineX" type="button">Avbryt</button><span class="sp"></span><button class="btn" id="mineReset" type="button" hidden>Tilbakestill</button><button class="btn" id="mineDel" type="button" hidden>Slett</button></div>
@@ -2405,7 +2406,7 @@ document.addEventListener("keydown",e=>{if(document.getElementById("v-kort").hid
 const MINE="Mine kort";
 const escH=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 // h:1 = formatert tekst (fet/markering). o = id til et innebygd kort som er redigert (ikke et eget kort).
-const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>{const r={id:m.id.slice(0,40),q:m.h?richClean(m.q).slice(0,2000):m.q.slice(0,300),a:m.h?richClean(m.a).slice(0,8000):m.a.slice(0,1500),t:+m.t||0};if(m.h)r.h=1;if(m.x)r.x=1;if(typeof m.o==="string")r.o=m.o.slice(0,600);["qi","ai"].forEach(k=>{const v=m[k];if(v&&typeof v.id==="string"&&/^[a-z0-9]{4,40}$/.test(v.id))r[k]={id:v.id,w:+v.w||0,h:+v.h||0}});return r}).slice(0,500);
+const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>{const r={id:m.id.slice(0,40),q:m.h?richClean(m.q).slice(0,2000):m.q.slice(0,300),a:m.h?richClean(m.a).slice(0,8000):m.a.slice(0,1500),t:+m.t||0};if(m.h)r.h=1;if(m.x)r.x=1;if(typeof m.o==="string")r.o=m.o.slice(0,600);if(m.u==="T"||m.u==="SC")r.u=m.u;if(typeof m.n==="string"&&/^[RSTVEAOHXG]{1,10}$/.test(m.n))r.n=m.n;["qi","ai"].forEach(k=>{const v=m[k];if(v&&typeof v.id==="string"&&/^[a-z0-9]{4,40}$/.test(v.id))r[k]={id:v.id,w:+v.w||0,h:+v.h||0}});return r}).slice(0,500);
 // Formatert tekst: bare fet skrift, fargemarkering, avsnitt og lister slipper gjennom.
 const HL={g:"#D7ECCB",b:"#D6E4F4",r:"#F6DCE4",l:"#E6DDF3",y:"#F5EBB5"};
 const HLRGB={};Object.entries(HL).forEach(([k,v])=>{const n=parseInt(v.slice(1),16);HLRGB[`rgb(${n>>16}, ${n>>8&255}, ${n&255})`]=k});
@@ -2465,11 +2466,12 @@ let BASE=null,HIDDEN=new Map();
 function mineSync(){
   if(!BASE)BASE=CARDS.filter(c=>!(c[3]&&c[3].own));
   EDITS=new Map();HIDDEN=new Map();
-  mine.forEach(m=>{if(m.o&&m.x)HIDDEN.set(m.o,m)});
+  mine.forEach(m=>{if(!m.u&&m.o&&m.x)HIDDEN.set(m.o,m)});
   CARDS.length=0;BASE.forEach(c=>{if(!HIDDEN.has(cid(c)))CARDS.push(c)});
-  mine.forEach(m=>{if(m.x)return;if(m.o){EDITS.set(m.o,m);return}
+  mine.forEach(m=>{if(m.x||m.u)return;if(m.o){EDITS.set(m.o,m);return}
     CARDS.push(m.h?[MINE,m.q,m.a,{own:m.id,html:1}]:[MINE,escH(m.q),escH(m.a).replace(/\n+/g,"<br>"),{own:m.id}])});
   if(window.searchReset)searchReset();
+  if(typeof uRebuild==="function")uRebuild();
 }
 function mineChanged(){S.set("syg-custom",mine);mineSync();if(Acct.uid)acctSave();else setSync("local","Lagret i denne nettleseren")}
 mineSync();
@@ -2487,7 +2489,7 @@ async function dlgImgCommit(prev){const out={};for(const sd of ["q","a"]){const 
   return out}
 const imgDelOf=m=>{if(!m)return;["qi","ai"].forEach(k=>{if(m[k])IMG.del(m[k].id)})};
 const plainToEditor=v=>escH(v).replace(/\n/g,"<br>");
-function mineOpen(id){
+function mineOpen(id){uDlgReset();
   const dlg=document.getElementById("mineDlg"),m=id?mine.find(x=>x.id===id):null;mineEditing=m?m.id:null;editBase=null;
   document.getElementById("mineH").textContent=m?"Rediger kortet":"Nytt kort";
   document.getElementById("mineQ").innerHTML=m?(m.h?richToEditor(m.q):plainToEditor(m.q)):"";document.getElementById("mineA").innerHTML=m?(m.h?richToEditor(m.a):plainToEditor(m.a)):"";
@@ -2496,7 +2498,7 @@ function mineOpen(id){
   dlgImgLoad(m);dlg.showModal();document.getElementById("mineQ").focus();
 }
 // Rediger et innebygd kort: endringen lagres som din egen versjon, originalen ligger urørt.
-function editOpen(c){
+function editOpen(c){uDlgReset();
   const dlg=document.getElementById("mineDlg"),id=cid(c),ed=EDITS.get(id);mineEditing=null;editBase=c;
   document.getElementById("mineH").textContent="Rediger kortet";
   document.getElementById("mineQ").innerHTML=richToEditor(ed?ed.q:richClean(c[1]));
@@ -2511,6 +2513,7 @@ function editOpen(c){
     const q=richClean(document.getElementById("mineQ").innerHTML),a=richClean(document.getElementById("mineA").innerHTML);
     if(richIsEmpty(q)||richIsEmpty(a)){err("Skriv både spørsmål og svar.");return}
     if(q.length>2000||a.length>8000){err("Teksten er for lang.");return}
+    if(uDlg){uSave(q,a,err);return}
     const sv=document.getElementById("mineSave");
     const setImgs=async(m,prev)=>{sv.disabled=true;try{const r=await dlgImgCommit(prev);delete m.qi;delete m.ai;Object.assign(m,r)}finally{sv.disabled=false}};
     if(editBase){const o=cid(editBase),ex=mine.find(x=>x.o===o);
@@ -2524,7 +2527,8 @@ function editOpen(c){
     mineChanged();dlg.close();
     deck=MINE;onlyAgain=false;onlyKnown=false;onlyStar=false;buildOrder(false);
     const k=order.findIndex(c=>c[3]&&c[3].own===id);pos=k<0?0:k;renderDecks();renderCard()};
-  document.getElementById("mineDel").onclick=()=>{if(!mineEditing&&!editBase)return;if(!confirmDel())return;
+  document.getElementById("mineDel").onclick=()=>{if(uDlg){if((uDlg.own||uDlg.base)&&confirmDel())uDelete();return}
+    if(!mineEditing&&!editBase)return;if(!confirmDel())return;
     if(editBase){const o=cid(editBase);imgDelOf(mine.find(x=>x.o===o&&!x.x));mine=mine.filter(x=>x.o!==o);
       mine.push({id:"x"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),o,q:"",a:"",x:1,t:Date.now()});
       mineChanged();dlg.close();editBase=null;buildOrder(false);renderDecks();renderCard();return}
@@ -2533,7 +2537,7 @@ function editOpen(c){
   // Bekreft sletting i knappen i stedet for en nettleserdialog
   let armed=0;function confirmDel(){const b=document.getElementById("mineDel");if(Date.now()-armed<4000){armed=0;b.textContent="Slett";return true}armed=Date.now();b.textContent="Trykk igjen for å slette";setTimeout(()=>{b.textContent="Slett"},4000);return false}
   document.getElementById("mineX").onclick=()=>dlg.close();
-  document.getElementById("mineReset").onclick=()=>{if(!editBase)return;const o=cid(editBase);imgDelOf(mine.find(x=>x.o===o));mine=mine.filter(x=>x.o!==o);mineChanged();dlg.close();renderCard()};
+  document.getElementById("mineReset").onclick=()=>{if(uDlg){uReset();return}if(!editBase)return;const o=cid(editBase);imgDelOf(mine.find(x=>x.o===o));mine=mine.filter(x=>x.o!==o);mineChanged();dlg.close();renderCard()};
   // Verktøylinje: fet skrift og fargemarkering i feltet du sist skrev i
   let last=document.getElementById("mineA");
   dlg.querySelectorAll(".rte").forEach(r=>{r.addEventListener("focus",()=>{last=r});
@@ -2625,16 +2629,36 @@ const NEEDS={R:["Respirasjon","#2F6FD0"],S:["Sirkulasjon","#C8323C"],T:["Tempera
 const dot=k=>`<span class="dot" style="background:${NEEDS[k][1]}" title="${NEEDS[k][0]}" aria-label="${NEEDS[k][0]}"></span>`;
 const dots=n=>`<span class="dots">${[...n].map(dot).join("")}</span>`;
 let uMode=S.get("u-mode","T"),uFilter=S.get("u-filter","all"),uIdx=0,uFlip=false,uOrder=null;
+// Faste id-er for de innebygde kortene, så «kan» og stjerner følger kortet selv om andre kort slettes.
+const UBASE={};Object.keys(UFC).forEach(m=>{UBASE[m]=UFC[m].slice();UBASE[m].forEach((c,i)=>{c._id="u:"+m+":"+i})});
+let UEDITS=new Map(),UHIDDEN=new Map(),uPicked=new Set(S.get("u-picked",[])),uDelView=false;
+const plainOf=h=>{const d=document.createElement("div");d.innerHTML=String(h||"");return (d.textContent||"").replace(/\s+/g," ").trim()};
+function uRebuild(){if(!window.UREADY)return;UEDITS=new Map();UHIDDEN=new Map();const own={T:[],SC:[]};
+  mine.forEach(m=>{if(!m.u)return;if(m.o){(m.x?UHIDDEN:UEDITS).set(m.o,m);return}if(m.x)return;
+    const pq=plainOf(m.q),pa=plainOf(m.a);own[m.u].push({_id:"mine:"+m.id,_own:m.id,n:m.n||"G",t:pq,betyr:pa,diag:pa.slice(0,140),front:[pq]})});
+  Object.keys(UBASE).forEach(m=>{UFC[m]=UBASE[m].filter(c=>!UHIDDEN.has(c._id)).concat(own[m]||[])});
+  uOrder=null;if(window.searchReset)searchReset()}
+const nOf=c=>{const e=UEDITS.get(c._id);return e&&e.n?e.n:c.n};
+window.UREADY=true;uRebuild();
 let uOnlyStar=false,uOnlyKnown=false,uOnlyAgain=false;
-const uid=c=>"u:"+uMode+":"+UFC[uMode].indexOf(c);
-function uList(){const L=UFC[uMode];return L.filter(c=>(uFilter==="all"||c.n.includes(uFilter))&&(!uOnlyStar||stars.has(uid(c)))&&(!uOnlyKnown||known.has(uid(c)))&&(!uOnlyAgain||!known.has(uid(c))))}
+const uid=c=>c._id;
+function uList(){const L=UFC[uMode];return L.filter(c=>(uFilter==="all"||(uFilter==="pick"?[...nOf(c)].some(k=>uPicked.has(k)):nOf(c).includes(uFilter)))&&(!uOnlyStar||stars.has(uid(c)))&&(!uOnlyKnown||known.has(uid(c)))&&(!uOnlyAgain||!known.has(uid(c))))}
 function uSeq(){const L=uList();if(!uOrder||uOrder.length!==L.length)uOrder=L.map((_,i)=>i);return uOrder.map(i=>L[i])}
 function renderUFilter(){const f=document.getElementById("ufilter");const keys=Object.keys(NEEDS).filter(k=>uMode==="T"||k!=="G");
- f.innerHTML=`<div class="ufrow"><button type="button" class="ustar" id="uonlystar" aria-pressed="${uOnlyStar}" title="Vis bare stjernemerkede" aria-label="Vis bare stjernemerkede kort">${uOnlyStar?"★":"☆"}</button><button type="button" data-uf="all" aria-pressed="${uFilter==="all"}">Alle</button></div><div class="ufrow2"><button type="button" id="uonlyagain" aria-pressed="${uOnlyAgain}" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span>${UFC[uMode].filter(c=>!known.has(uid(c))).length}</span></button><button type="button" id="uonlyknown" aria-pressed="${uOnlyKnown}" title="Vis bare kort jeg kan">Kan <span>${UFC[uMode].filter(c=>known.has(uid(c))).length}</span></button></div>`+keys.map(k=>`<button type="button" data-uf="${k}" aria-pressed="${uFilter===k}">${dot(k)}${NEEDS[k][0]}</button>`).join("");
+ const nh=[...UHIDDEN.keys()].filter(k=>k.startsWith("u:"+uMode+":")).length;
+ f.innerHTML=`<div class="uacts"><button type="button" class="uadd" id="uAdd">+ Nytt kort</button><button type="button" id="uPick" aria-pressed="${uFilter==="pick"}" title="Velg flere behov samtidig">☑ Velg flere</button>${nh?`<button type="button" id="uDelBtn" aria-pressed="${uDelView}" title="Se og gjenopprett kort du har slettet">Slettede ${nh}</button>`:""}</div>`+`<div class="ufrow"><button type="button" class="ustar" id="uonlystar" aria-pressed="${uOnlyStar}" title="Vis bare stjernemerkede" aria-label="Vis bare stjernemerkede kort">${uOnlyStar?"★":"☆"}</button><button type="button" data-uf="all" aria-pressed="${uFilter==="all"}">Alle</button></div><div class="ufrow2"><button type="button" id="uonlyagain" aria-pressed="${uOnlyAgain}" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span>${UFC[uMode].filter(c=>!known.has(uid(c))).length}</span></button><button type="button" id="uonlyknown" aria-pressed="${uOnlyKnown}" title="Vis bare kort jeg kan">Kan <span>${UFC[uMode].filter(c=>known.has(uid(c))).length}</span></button></div>`+keys.map(k=>`<button type="button" data-uf="${k}" aria-pressed="${uFilter==="pick"?uPicked.has(k):uFilter===k}">${dot(k)}${NEEDS[k][0]}</button>`).join("");
+ document.getElementById("uAdd").onclick=()=>uOpen(null);
+ document.getElementById("uPick").onclick=()=>{uFilter=uFilter==="pick"?"all":"pick";S.set("u-filter",uFilter);uDelView=false;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
+ const db=document.getElementById("uDelBtn");if(db)db.onclick=()=>{uDelView=!uDelView;renderUFilter();renderUCard()};
  document.getElementById("uonlystar").onclick=()=>{uOnlyStar=!uOnlyStar;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
  document.getElementById("uonlyagain").onclick=()=>{uOnlyAgain=!uOnlyAgain;if(uOnlyAgain)uOnlyKnown=false;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
  document.getElementById("uonlyknown").onclick=()=>{uOnlyKnown=!uOnlyKnown;if(uOnlyKnown)uOnlyAgain=false;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
- f.querySelectorAll("[data-uf]").forEach(b=>b.onclick=()=>{uFilter=b.dataset.uf;S.set("u-filter",uFilter);uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()});
+ const sel=document.createElement("label");sel.className="usel";sel.innerHTML=`<span class="uselv">${uFilter!=="all"&&NEEDS[uFilter]?dot(uFilter)+NEEDS[uFilter][0]:"Alle behov"}</span><select aria-label="Velg behov"><option value="all"${uFilter==="all"?" selected":""}>Alle behov</option>${keys.map(k=>`<option value="${k}"${uFilter===k?" selected":""}>${NEEDS[k][0]}</option>`).join("")}</select>`;
+ f.querySelector(".ufrow2").after(sel);f.classList.toggle("picking",uFilter==="pick");
+ sel.querySelector("select").onchange=e=>{uDelView=false;uFilter=e.target.value;S.set("u-filter",uFilter);uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
+ f.querySelectorAll("[data-uf]").forEach(b=>b.onclick=()=>{uDelView=false;const k=b.dataset.uf;
+   if(uFilter==="pick"&&k!=="all"){uPicked.has(k)?uPicked.delete(k):uPicked.add(k);S.set("u-picked",[...uPicked]);uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard();return}
+   uFilter=k;S.set("u-filter",uFilter);uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()});
  document.querySelectorAll("[data-umode]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.umode===uMode));
  document.getElementById("ulegend").innerHTML=Object.keys(NEEDS).map(k=>`<span>${dot(k)}${NEEDS[k][0]}</span>`).join("")}
 const KEYRX=/(ca\. \d+°|\d+° sideleie|minst \d+°|hver \d+\.–\d+\. time|hver \d+\. time|hver time|minst (?:to|tre|fire) ganger daglig|(?:to|tre) ganger daglig|flere ganger daglig|\d+–\d+ (?:ganger|sekunder|minutter)|\d+–\d+ minutter|(?:ca\. )?\d+(?:,\d+)?(?:–\d+(?:,\d+)?)? (?:liter|minutter|uker)|ca\. 30 ml per kg|1–2 kg|ISBAR|PEP-fløyte|fortykket drikke|myk eller moset mat|antitrombosestrømper|barrierekrem|blæreskanner|resturin|MNA|væskeliste|ernæringsplan|sengekanten|nattlys|rullatoren|ringeklokka|helt minutt|hever hodeenden|enkel plan|blir hos pasienten|teller pusten|gir (?:oksygen|febernedsettende|smertestillende|blodfortynnende|avføringsmiddel|soppmiddel|vanndrivende|fortykket drikke)|måler (?:SpO₂|puls|blodtrykk|temperaturen|resturin)|veies|veier|mobiliserer|skifter (?:sykepleieren )?pasientens stilling|munnstell|tilbyr drikke|bekkenbunnstrening|hosteteknikk|kostsamtale|dype åndedrag|fotøvelser|støttestrømper|trykkfordelende madrass|vasker (?:hendene|forfra og bakover)|straks|etter forordning|som forordnet|første dag|30 minutter før)/g;
@@ -2656,18 +2680,27 @@ function backTerm(c){
 function backScen(c){return `<div><h4>Sykepleiediagnose (${c.typ==="P"?"problem":"risiko"})</h4><p class="diag">${c.diag}</p></div>
  <div><h4>Mål</h4>${Array.isArray(c.mal)?`<ul class="ml">${c.mal.map(m=>`<li>${m}</li>`).join("")}</ul>`:`<p>${c.mal}</p>`}</div>
  <div><h4>Tiltak → begrunnelse</h4><ul class="tt">${c.tiltak.map(t=>`<li><b>${t[0]}</b><span>${t[1]}</span></li>`).join("")}</ul></div>${c.andre?`<div><h4>Andre diagnoser fra forsiden</h4><ul class="ml">${c.andre.map(a=>`<li><b>${a[0]}:</b> ${a[1]}</li>`).join("")}</ul></div>`:""}`}
-function renderUCard(){const st=document.getElementById("ustage");const L=uSeq();
+function renderUCard(){const st=document.getElementById("ustage");
+ if(uDelView){const H=UBASE[uMode].filter(c=>UHIDDEN.has(c._id));
+   st.innerHTML=`<div class="udel"><h3>Slettede kort</h3>${H.length?`<ul>${H.map(c=>`<li><span>${uMode==="T"?c.t:c.diag}</span><button class="btn" data-restore="${c._id}">Gjenopprett</button></li>`).join("")}</ul>`:"<p>Ingen slettede kort.</p>"}<div class="row" style="margin-top:14px"><button class="btn" id="udelBack">Tilbake til kortene</button></div></div>`;
+   st.querySelectorAll("[data-restore]").forEach(b=>b.onclick=()=>{const o=b.dataset.restore;mine=mine.filter(x=>!(x.u&&x.o===o&&x.x));mineChanged();if(![...UHIDDEN.keys()].some(k=>k.startsWith("u:"+uMode+":")))uDelView=false;renderUFilter();renderUCard()});
+   document.getElementById("udelBack").onclick=()=>{uDelView=false;renderUFilter();renderUCard()};return}
+ if(uFilter==="pick"&&!uPicked.size){st.innerHTML=`<div class="empty"><h3>Velg behov</h3><p>Trykk på ett eller flere behov i listen for å øve på kort fra dem.</p></div>`;return}
+ const L=uSeq();
  if(!L.length){st.innerHTML=(uOnlyStar||uOnlyKnown||uOnlyAgain)?`<div class="empty"><h3>Ingen kort her</h3><p>${uOnlyStar?"Trykk på stjernen ☆ på et kort for å samle de du vil øve mer på.":uOnlyKnown?"Trykk «✓» på et kort, så havner det her.":"Du har markert alle kortene som «kan»."}</p><button class="btn" id="unoStar">Vis alle kort</button></div>`:`<div class="empty">Ingen kort i denne kategorien.</div>`;const nb=document.getElementById("unoStar");if(nb)nb.onclick=()=>{uOnlyStar=false;uOnlyKnown=false;uOnlyAgain=false;uIdx=0;uOrder=null;renderUFilter();renderUCard()};return}
- if(uIdx>=L.length)uIdx=0;if(uIdx<0)uIdx=L.length-1;const c=L[uIdx];const col=NEEDS[c.n[0]][1];
+ if(uIdx>=L.length)uIdx=0;if(uIdx<0)uIdx=L.length-1;const c=L[uIdx];const ue=c._own?mine.find(m=>m.id===c._own):UEDITS.get(c._id);const cn=nOf(c);const col=NEEDS[cn[0]][1];
  const kindTxt=uMode==="T"?({p:"Problem / tilstand",v:"Verktøy, fysiologi eller tiltak",f:"Feberens faser"})[c.k]:(c.mix?"Flere behov er berørt. Hvilke sykepleiediagnoser kan du lage?":"Hvilken sykepleiediagnose passer?");
  let body;
- if(!uFlip){body=uMode==="T"?`<h3>${c.t}</h3><div class="kind">${kindTxt}</div><div class="tap">Trykk på kortet eller mellomrom for å snu</div>`
+ if(ue){body=!uFlip?(uMode==="T"?`<div class="uq rich">${ue.q}</div><div class="tap">Trykk på kortet eller mellomrom for å snu</div>`:`<p class="q">${c._own?"Hvilken sykepleiediagnose passer?":kindTxt}</p><div class="rich">${ue.q}</div><div class="tap">Tenk ut diagnose, mål og tiltak før du snur</div>`)
+   :`${uMode==="T"?`<div class="uq rich" style="font-size:22px">${ue.q}</div>`:""}<div class="ub rich">${ue.a}</div>`}
+ else if(!uFlip){body=uMode==="T"?`<h3>${c.t}</h3><div class="kind">${kindTxt}</div><div class="tap">Trykk på kortet eller mellomrom for å snu</div>`
    :`<p class="q">${kindTxt}</p><ul class="finds">${c.front.map(f=>`<li>${f}</li>`).join("")}</ul><div class="tap">Tenk ut diagnose (problem + relatert til), mål og tiltak (når, hvem, hva, hvordan) før du snur</div>`}
  else body=`${uMode==="T"?`<h3 style="margin:4px 0 14px;font-size:24px">${c.t}</h3>`:""}<div class="ub">${uMode==="T"?backTerm(c):backScen(c)}</div>`;
  st.innerHTML=`<div class="u-prog"><span>${uIdx+1} / ${L.length} · ${UFC[uMode].filter(x=>known.has(uid(x))).length} kan</span><button type="button" id="ushuf">Bland</button></div>
   <div class="ucard" id="ucard" tabindex="0" role="button" aria-label="Snu kortet" style="--uc:${col==="#FFFFFF"?"var(--line)":col}">
-   <div class="side"><span>${uFlip?"Bakside":"Forside"}</span>${uFlip||uMode==="T"?dots(c.n):dot(c.n[0])}</div>${body}</div>
-  <div class="u-nav"><button class="btn" id="uprev">← Forrige</button><button class="btn again" id="uagain">Øv mer</button><button class="btn star" id="ustarcard" aria-pressed="${stars.has(uid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(uid(c))?"★":"☆"}</button><button class="btn know chk" id="uknow" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="unext">Neste →</button><button class="btn primary" id="uflip">${uFlip?"Vis forsiden":"Snu kortet"}</button></div>`;
+   <div class="side"><span>${uFlip?"Bakside":"Forside"}${c._own?" · eget kort":ue?" · ✎ redigert":""}</span>${uFlip||uMode==="T"?dots(cn):dot(cn[0])}</div>${body}</div>
+  <div class="u-nav"><button class="btn" id="uprev">← Forrige</button><button class="btn again" id="uagain">Øv mer</button><button class="btn star" id="ustarcard" aria-pressed="${stars.has(uid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(uid(c))?"★":"☆"}</button><button class="btn know chk" id="uknow" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="unext">Neste →</button><button class="btn primary" id="uflip">${uFlip?"Vis forsiden":"Snu kortet"}</button><button class="btn" id="uedit" title="Rediger, bytt kategori eller slett kortet">✎ Rediger</button></div>`;
+ document.getElementById("uedit").onclick=()=>uOpen(c);
  const flip=()=>{uFlip=!uFlip;renderUCard()};
  document.getElementById("ucard").onclick=e=>{if(e.target.closest("a"))return;flip()};
  document.getElementById("uflip").onclick=flip;
@@ -2681,6 +2714,47 @@ function renderUCard(){const st=document.getElementById("ustage");const L=uSeq()
 document.querySelectorAll("[data-umode]").forEach(b=>b.onclick=()=>{uMode=b.dataset.umode;S.set("u-mode",uMode);if(uMode==="SC"&&uFilter==="G")uFilter="all";uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()});
 document.addEventListener("keydown",e=>{if(document.getElementById("v-utd").hidden||e.target.tagName==="TEXTAREA")return;
  if(e.key==="ArrowRight"){uIdx++;uFlip=false;renderUCard()}else if(e.key==="ArrowLeft"){uIdx--;uFlip=false;renderUCard()}else if(e.key===" "&&(e.target===document.body||e.target.id==="ucard")){e.preventDefault();uFlip=!uFlip;renderUCard()}});
+// ---- Redigeringsvindu for utdypende kort (bruker samme vindu som flashcards) ----
+let uDlg=null;
+const LBL={q:"Spørsmål (forsiden)",a:"Svar (baksiden)"};
+function uDlgReset(){uDlg=null;document.getElementById("uCatWrap").hidden=true;document.querySelectorAll("#mineDlg .imgrow").forEach(r=>r.hidden=false);
+  document.getElementById("mineQL").textContent=LBL.q;document.getElementById("mineAL").textContent=LBL.a;
+  document.getElementById("mineHelp").textContent="Marker tekst, og velg fet skrift eller en farge. Du kan også lime inn et bilde i et av feltene."}
+const toRich=h=>richClean(String(h).replace(/<h4>(.*?)<\/h4>/g,"<p><b>$1</b></p>").replace(/<p class="hw">/g,"<p>"));
+function uCatsRender(sel){const keys=Object.keys(NEEDS).filter(k=>uDlg.mode==="T"||k!=="G");const box=document.getElementById("uCats");
+  box.innerHTML=keys.map(k=>`<button type="button" data-k="${k}" aria-pressed="${sel.includes(k)}">${dot(k)}${NEEDS[k][0]}</button>`).join("");
+  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;let n=uDlg.n;n=n.includes(k)?n.replace(k,""):n+k;uDlg.n=n;uCatsRender(n)})}
+function uOpen(c){const dlg=document.getElementById("mineDlg");mineEditing=null;editBase=null;
+  const own=c&&c._own?mine.find(m=>m.id===c._own):null,ed=c&&!own?UEDITS.get(c._id):null;
+  uDlg={mode:uMode,own:own?own.id:null,base:c&&!own?c:null,n:c?nOf(c):(uFilter!=="all"&&uFilter!=="pick"?uFilter:"")};
+  document.getElementById("mineH").textContent=c?"Rediger kortet":"Nytt utdypende kort";
+  document.getElementById("mineQL").textContent=uMode==="T"?"Begrep eller tittel (forsiden)":"Funn fra caset (forsiden)";
+  document.getElementById("mineAL").textContent=uMode==="T"?"Forklaring (baksiden)":"Sykepleiediagnose, mål og tiltak (baksiden)";
+  document.getElementById("mineHelp").textContent="Marker tekst, og velg fet skrift eller en farge.";
+  let q="",a="";
+  if(own){q=own.q;a=own.a}else if(ed){q=ed.q;a=ed.a}
+  else if(c){q=uMode==="T"?escH(plainOf(c.t)):richClean(`<ul>${c.front.map(f=>`<li>${f}</li>`).join("")}</ul>`);a=toRich(uMode==="T"?backTerm(c):backScen(c))}
+  document.getElementById("mineQ").innerHTML=richToEditor(q);document.getElementById("mineA").innerHTML=richToEditor(a);
+  document.querySelectorAll("#mineDlg .imgrow").forEach(r=>r.hidden=true);document.getElementById("uCatWrap").hidden=false;uCatsRender(uDlg.n);
+  document.getElementById("mineDel").hidden=!c;document.getElementById("mineReset").hidden=!ed;document.getElementById("mineErr").hidden=true;
+  document.getElementById("mineNote").textContent=(Acct.uid?"Lagres på brukeren «"+Acct.name+"».":"Du er ikke logget inn, så det lagres bare i denne nettleseren.")+(uDlg.base?" Originalen kan hentes tilbake med «Tilbakestill».":"");
+  dlg.showModal();document.getElementById(c?"mineA":"mineQ").focus()}
+function uAfter(goId){document.getElementById("mineDlg").close();uDlg=null;uDelView=false;uFlip=false;
+  if(goId){uFilter="all";S.set("u-filter","all");uOrder=null;const i=uList().findIndex(x=>x._id===goId);uIdx=i<0?0:i}
+  renderUFilter();renderUCard()}
+function uSave(q,a,err){const d=uDlg;const n=[...new Set(d.n)].join("");if(!n){err("Velg minst én kategori.");return}
+  if(d.own){const m=mine.find(x=>x.id===d.own);m.q=q;m.a=a;m.n=n;m.t=Date.now();mineChanged();uAfter(null);return}
+  if(d.base){const o=d.base._id,ex=mine.find(x=>x.u&&x.o===o&&!x.x);
+    if(ex){ex.q=q;ex.a=a;ex.n=n;ex.t=Date.now()}else{if(mine.length>=500){err("Du har nådd grensen på 500 egne og redigerte kort.");return}
+      mine.push({id:"e"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),u:d.mode,o,q,a,n,h:1,t:Date.now()})}
+    mineChanged();uAfter(null);return}
+  if(mine.length>=500){err("Du kan ha opptil 500 egne kort.");return}
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);mine.push({id,u:d.mode,q,a,n,h:1,t:Date.now()});mineChanged();uAfter("mine:"+id)}
+function uDelete(){const d=uDlg;
+  if(d.own){mine=mine.filter(x=>x.id!==d.own);known.delete("mine:"+d.own);stars.delete("mine:"+d.own);S.set("syg-known",[...known]);S.set("syg-stars",[...stars])}
+  else{const o=d.base._id;mine=mine.filter(x=>!(x.u&&x.o===o));mine.push({id:"x"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),u:d.mode,o,q:"",a:"",x:1,t:Date.now()})}
+  mineChanged();uAfter(null)}
+function uReset(){const o=uDlg.base&&uDlg.base._id;if(!o)return;mine=mine.filter(x=>!(x.u&&x.o===o&&!x.x));mineChanged();uAfter(null)}
 renderUFilter();renderUCard();
 buildOrder(false);renderDecks();renderCard();
 (function(){ // husk hvor du var ved refresh
@@ -3078,5 +3152,30 @@ document.getElementById("delX").onclick=()=>document.getElementById("delDlg").cl
 .cimg{display:block;max-width:100%;max-height:300px;width:auto;height:auto;margin:0 auto;border-radius:10px;background:#fff;object-fit:contain}
 .face .cimg+.front-q{margin-top:6px}
 .face .cimg{flex:none}
+
+/* ---- Utdypende kort: egne kort, redigering, sletting, flere kategorier ---- */
+.uacts{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;width:100%}
+.uacts button{font:inherit;font-size:14px;line-height:1.2;padding:7px 12px;border-radius:999px;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--ink);min-height:36px}
+.uacts .uadd{background:var(--blue);border-color:var(--blue);color:var(--paper);font-weight:700}
+.uacts button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--paper)}
+.ucats{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ucats button{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:14px;padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:var(--field);color:var(--ink);cursor:pointer;min-height:36px}
+.ucats button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--paper)}
+.ucard .uq{font-family:var(--f-display);font-size:clamp(22px,3vw,28px);font-weight:700;line-height:1.25;margin:6px 0 10px}
+.ucard .uq p{margin:0}
+.ub.rich p{margin:0 0 10px}
+.udel{background:var(--paper);border-radius:14px;padding:20px 22px}
+.udel h3{margin:0 0 10px}
+.udel ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.udel li{display:flex;align-items:center;gap:10px;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+
+/* Utdypende kort: nedtrekksliste for behov på mobil */
+.u-filter .usel{display:none}
+@media (max-width:860px){
+ .u-filter:not(.picking) [data-uf]{display:none}
+ .u-filter:not(.picking) .usel{display:flex;align-items:center;gap:8px;position:relative;width:100%;min-height:44px;padding:8px 40px 8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 16px center;color:var(--ink);font-size:16px;cursor:pointer}
+ .u-filter .usel select{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;cursor:pointer;border:0}
+ .u-filter .usel .uselv{display:flex;align-items:center;gap:8px}
+}
 </style>
 </body></html>
