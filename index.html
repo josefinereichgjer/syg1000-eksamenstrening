@@ -849,13 +849,13 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
 </form></dialog>
 <dialog id="mineDlg"><form id="mineForm" novalidate><h3 id="mineH">Nytt kort</h3>
 <div class="rtbar" role="toolbar" aria-label="Formatering">
-<button type="button" class="rtb" data-cmd="bold" title="Fet skrift (Ctrl+B)" aria-label="Fet skrift"><b>F</b></button><span class="rtsep"></span>
+<button type="button" class="rtb" data-cmd="bold" title="Fet skrift (Ctrl+B)" aria-label="Fet skrift"><b>F</b></button><button type="button" class="rtb" data-cmd="underline" title="Understrek (Ctrl+U)" aria-label="Understrek"><u>U</u></button><button type="button" class="rtb" data-cmd="insertUnorderedList" title="Punktliste" aria-label="Punktliste"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="4" cy="5" r="1.6" fill="currentColor"/><circle cx="4" cy="10" r="1.6" fill="currentColor"/><circle cx="4" cy="15" r="1.6" fill="currentColor"/><path d="M8 5h9M8 10h9M8 15h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><span class="rtsep"></span>
 <button type="button" class="rtb sw" data-hl="g" title="Grønn markering" aria-label="Grønn markering"><i class="hl-g"></i></button>
 <button type="button" class="rtb sw" data-hl="b" title="Blå markering" aria-label="Blå markering"><i class="hl-b"></i></button>
 <button type="button" class="rtb sw" data-hl="r" title="Rosa markering" aria-label="Rosa markering"><i class="hl-r"></i></button>
 <button type="button" class="rtb sw" data-hl="l" title="Lilla markering" aria-label="Lilla markering"><i class="hl-l"></i></button>
 <button type="button" class="rtb sw" data-hl="y" title="Gul markering" aria-label="Gul markering"><i class="hl-y"></i></button>
-<button type="button" class="rtb" data-hl="x" title="Fjern markering" aria-label="Fjern markering">Fjern</button></div>
+<button type="button" class="rtb sw" data-hl="x" title="Fjern markering" aria-label="Fjern markering"><i class="hlx"></i></button></div>
 <label id="mineQL" for="mineQ">Spørsmål (forsiden)</label><div class="rte" id="mineQ" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="mineQL"></div>
 <label id="mineAL" for="mineA">Svar (baksiden)</label><div class="rte" id="mineA" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="mineAL"></div>
 <p class="hint">Marker tekst, og velg fet skrift eller en farge.</p>
@@ -2405,24 +2405,26 @@ const HLRGB={};Object.entries(HL).forEach(([k,v])=>{const n=parseInt(v.slice(1),
 function richClean(html){
   const t=document.createElement("template");t.innerHTML=String(html||"");
   const out=[];
-  const walk=(n,bold,hl)=>{
-    if(n.nodeType===3){let x=escH(n.nodeValue);if(!x)return;if(bold)x="<b>"+x+"</b>";if(hl)x=`<mark class="hl-${hl}">${x}</mark>`;out.push(x);return}
+  const walk=(n,bold,hl,ul)=>{
+    if(n.nodeType===3){let x=escH(n.nodeValue);if(!x)return;if(bold)x="<b>"+x+"</b>";if(ul)x="<u>"+x+"</u>";if(hl)x=`<mark class="hl-${hl}">${x}</mark>`;out.push(x);return}
     if(n.nodeType!==1)return;
     const tag=n.tagName.toLowerCase();
     if(tag==="br"){out.push("<br>");return}
     if(/^(script|style|template|iframe|object|img|svg)$/.test(tag))return;
-    let b=bold,h=hl;
+    let b=bold,h=hl,u=ul;
     if(tag==="b"||tag==="strong")b=true;
+    if(tag==="u"||tag==="ins"||/underline/.test((n.style&&(n.style.textDecoration||n.style.textDecorationLine))||""))u=true;
     const fw=n.style&&n.style.fontWeight;if(fw==="bold"||+fw>=600)b=true;if(fw==="normal"||(+fw&&+fw<600))b=false;
     const cm=(n.className&&typeof n.className==="string")?n.className.match(/(?:^|\s)hl-([gbrly])(?:\s|$)/):null;if(cm)h=cm[1];
     const bg=n.style&&n.style.backgroundColor;if(bg){h=HLRGB[bg.replace(/\s+/g,"").replace(/,/g,", ")]||(/transparent|rgba\(0, 0, 0, 0\)/.test(bg)?null:h)}
     const blk=/^(p|div|li|h[1-6])$/.test(tag);
-    if(tag==="ul"||tag==="ol"){out.push(`<${tag}${n.classList.contains("nl")?' class="nl"':""}>`);n.childNodes.forEach(c=>walk(c,b,h));out.push(`</${tag}>`);return}
-    if(blk){const tg=tag==="li"?"li":"p";out.push(`<${tg}>`);n.childNodes.forEach(c=>walk(c,b,h));out.push(`</${tg}>`);return}
-    n.childNodes.forEach(c=>walk(c,b,h));
+    if(tag==="ul"||tag==="ol"){out.push(`<${tag}${n.classList.contains("nl")?' class="nl"':""}>`);n.childNodes.forEach(c=>walk(c,b,h,u));out.push(`</${tag}>`);return}
+    if(blk&&tag!=="li"&&n.querySelector("ul,ol,p,div,li,h1,h2,h3")){n.childNodes.forEach(c=>walk(c,b,h,u));return}
+    if(blk){const tg=tag==="li"?"li":"p";out.push(`<${tg}>`);n.childNodes.forEach(c=>walk(c,b,h,u));out.push(`</${tg}>`);return}
+    n.childNodes.forEach(c=>walk(c,b,h,u));
   };
-  t.content.childNodes.forEach(c=>walk(c,false,null));
-  return out.join("").replace(/<\/b><b>/g,"").replace(/<p><\/p>/g,"<p><br></p>").trim();
+  t.content.childNodes.forEach(c=>walk(c,false,null,false));
+  return out.join("").replace(/<\/b><b>/g,"").replace(/<\/u><u>/g,"").replace(/<p><\/p>/g,"<p><br></p>").trim();
 }
 const richToEditor=h=>String(h).replace(/<mark class="hl-([gbrly])">/g,(m,k)=>`<span style="background-color:${HL[k]}">`).replace(/<\/mark>/g,"</span>");
 const richIsEmpty=h=>!String(h).replace(/<[^>]*>/g,"").replace(/&nbsp;|\s/g,"").length;
@@ -2488,7 +2490,7 @@ function editOpen(c){
     r.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="b"){e.preventDefault();document.execCommand("styleWithCSS",false,false);document.execCommand("bold")}})});
   dlg.querySelectorAll(".rtb").forEach(b=>{b.addEventListener("mousedown",e=>e.preventDefault());
     b.addEventListener("click",()=>{const sel=getSelection();if(!sel.rangeCount||!last.contains(sel.anchorNode)){last.focus();return}
-      if(b.dataset.cmd==="bold"){document.execCommand("styleWithCSS",false,false);document.execCommand("bold")}
+      if(b.dataset.cmd){document.execCommand("styleWithCSS",false,false);document.execCommand(b.dataset.cmd)}
       else{document.execCommand("styleWithCSS",false,true);document.execCommand("hiliteColor",false,b.dataset.hl==="x"?"transparent":HL[b.dataset.hl])}})});
 })();
 
@@ -2950,11 +2952,12 @@ const QUIZ=[["SYG1000", "Hva er riktig rekkefølge i sykepleieprosessen?", ["Dat
 :root[data-theme="dark"]{--hl-g:rgba(127,195,112,.30);--hl-b:rgba(138,169,218,.32);--hl-r:rgba(226,140,170,.30);--hl-l:rgba(170,145,220,.32);--hl-y:rgba(214,196,90,.30)}
 mark[class^="hl-"],i[class^="hl-"]{color:inherit;border-radius:4px;padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .hl-g{background:var(--hl-g)}.hl-b{background:var(--hl-b)}.hl-r{background:var(--hl-r)}.hl-l{background:var(--hl-l)}.hl-y{background:var(--hl-y)}
-.rich p{margin:0 0 .6em}.rich p:last-child{margin-bottom:0}.rich b{font-weight:700}
+.rich u,#mineDlg .rte u{text-decoration-thickness:1.5px;text-underline-offset:3px}.rich ul:not(.nl){margin:.2em 0 .6em;padding-left:1.3em;list-style:disc}.rich ul:not(.nl) li{margin:.15em 0}#mineDlg .rte ul{margin:.2em 0;padding-left:1.4em}.rich p{margin:0 0 .6em}.rich p:last-child{margin-bottom:0}.rich b{font-weight:700}
 .rtbar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:10px 0 2px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--field)}
 .rtb{min-width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0 10px}
 .rtb:hover{border-color:var(--muted)}.rtb b{font-size:16px}
 .rtb.sw{padding:0;width:34px}.rtb[data-hl="x"]{padding:0 9px;font-size:13px}.rtb.sw i{display:block;width:20px;height:20px;border-radius:50%;padding:0;border:1px solid rgba(0,0,0,.08)}
+.rtb.sw i.hlx{background:linear-gradient(135deg,transparent 45%,#C0605F 45%,#C0605F 55%,transparent 55%),var(--paper);border-color:var(--muted)}
 .rtsep{width:1px;height:22px;background:var(--line);margin:0 1px}
 #mineDlg .rte{margin-top:4px;min-height:70px;max-height:34vh;overflow:auto;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:16px;line-height:1.55;outline:none;white-space:pre-wrap;word-break:break-word}
 #mineDlg #mineA{min-height:150px}
@@ -2962,7 +2965,7 @@ mark[class^="hl-"],i[class^="hl-"]{color:inherit;border-radius:4px;padding:0 .12
 #mineDlg .rte p,#mineDlg .rte div{margin:0}
 #mineDlg .rte span[style*="background"]{border-radius:4px;color:inherit}
 .edbadge{margin-left:8px;font-size:11px;font-weight:600;opacity:.7;text-transform:none;letter-spacing:0}
-@media (max-width:720px){.fc-actions #mineEdit{order:7}.rtbar{gap:4px;padding:5px}.rtbar .rtb{min-width:0;min-height:0;height:32px;width:32px;padding:0}.rtbar .rtb[data-hl="x"]{width:auto;padding:0 8px}.rtbar .rtb.sw i{width:18px;height:18px}}
+@media (max-width:720px){.fc-actions #mineEdit{order:7}.rtbar{gap:4px;padding:5px}.rtbar .rtb{min-width:0;min-height:0;height:31px;width:29px;padding:0;flex:none}.rtbar{gap:3px;flex-wrap:nowrap;justify-content:space-between}.rtbar .rtsep{display:none}.rtbar .rtb.sw i{width:18px;height:18px}}
 </style>
 <style>
 .fc-top .chip.pickchip{border-color:var(--green)}
