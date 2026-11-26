@@ -280,6 +280,23 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 #acctDlg label{display:block;margin-top:12px;font-size:14px;font-weight:700}
 #acctDlg input{display:block;width:100%;margin-top:4px;font:inherit;font-size:16px;font-weight:400;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
 #acctDlg .hint{margin:0}
+#acctDlg,#mineDlg{border:0;border-radius:16px;padding:22px 24px;width:min(460px,calc(100vw - 32px));background:var(--paper);color:var(--ink);box-shadow:0 18px 48px rgba(40,30,80,.28)}
+#mineDlg{width:min(560px,calc(100vw - 32px))}
+#mineDlg::backdrop{background:rgba(20,20,40,.4)}
+#mineDlg h3{margin:0 0 6px;font-size:22px}
+#mineDlg label{display:block;margin-top:12px;font-size:14px;font-weight:700}
+#mineDlg textarea{display:block;margin-top:4px;font-weight:400;min-height:70px}
+#mineDlg #mineA{min-height:150px}
+#mineDlg .hint{margin:4px 0 0}
+#mineDlg .row .sp,#acctDlg .row .sp{flex:1}
+.atabs{display:flex;gap:4px;background:var(--field);border-radius:999px;padding:4px;margin-bottom:14px}
+.atab{flex:1;border:0;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:700;padding:8px 10px;border-radius:999px;cursor:pointer}
+.atab[aria-pressed="true"]{background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.aerr{color:#B3261E!important;font-weight:600;margin-top:10px!important}
+.fc-top .minerow{flex:0 0 100%;display:flex;flex-wrap:wrap;gap:8px;padding-bottom:10px;margin-bottom:2px;border-bottom:1px solid var(--line)}
+.fc-top .chip.minechip{border-color:var(--blue)}
+.fc-top .chip.addchip{background:var(--blue);color:var(--paper);border-color:var(--blue);font-weight:700}
+.minetag{display:inline-block;margin-left:8px;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--field);color:var(--muted);letter-spacing:0}
 #acctErr{color:#9B2C20;margin:10px 0 0!important}
 /* Utdypende flashcards */
 .tabs{max-width:100%;overflow-x:auto}.tabs button{white-space:nowrap}
@@ -817,7 +834,26 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
   <p class="foot">Casene er laget for trening og er fiktive. Løsningsforslagene er skrevet etter kriteriene for full uttelling i sensorveiledningen for ordinær eksamen 2025, med fagbegreper fra Kristoffersen mfl. (2021) bind 1–3, smittevernboka (kap. 5, 6 og 18) og Eide og Eide (kap. 4–5). Sidetallene er hentet fra sensorveiledningen og gjelder 4. utgave (2021).</p>
 </div>
 
-<dialog id="acctDlg"><form id="acctForm" novalidate><h3>Brukernavn</h3><p class="hint">Skriv inn et brukernavn for å lagre stjernemerkede flashcards og «kan»-status. Skriv samme navn på en annen enhet for å få dem tilbake. Det trengs ikke passord.</p><label>Brukernavn<input id="acctName" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" required></label><p class="hint" style="margin-top:8px">3–30 tegn: bokstaver, tall, - og _. Alle som kjenner navnet kan se og endre kortene dine, så velg et navn andre ikke gjetter, og ikke bruk fullt navn.</p><p id="acctErr" class="hint" role="alert" hidden></p><div class="row"><button class="btn primary" id="acctIn" type="submit">Fortsett</button><button class="btn" id="acctOut" type="button" hidden>Bytt bruker</button><button class="btn" id="acctX" type="button">Avbryt</button></div></form></dialog>
+<dialog id="acctDlg"><form id="acctForm" novalidate>
+<div id="acctInView">
+<div class="atabs"><button type="button" class="atab" data-m="in" aria-pressed="true">Logg inn</button><button type="button" class="atab" data-m="new" aria-pressed="false">Lag bruker</button></div>
+<p class="hint" id="acctLead">Logg inn for å få stjerner, «kan»-status og egne kort på alle enhetene dine.</p>
+<label>Brukernavn<input id="acctName" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" required></label>
+<label>Passord<input id="acctPw" type="password" autocomplete="current-password" maxlength="100" required></label>
+<label id="acctPw2L" hidden>Gjenta passordet<input id="acctPw2" type="password" autocomplete="new-password" maxlength="100"></label>
+<p class="hint" id="acctNote" hidden style="margin-top:10px">Brukernavn: 3–30 tegn (bokstaver, tall, - og _). Passord: minst 6 tegn. Passordet kan ikke tilbakestilles, så husk det. Hadde du et brukernavn uten passord fra før, lager du en bruker med samme navn, så blir fremgangen tatt med.</p>
+<p id="acctErr" class="hint aerr" role="alert" hidden></p>
+<div class="row"><button class="btn primary" id="acctIn" type="submit">Logg inn</button><button class="btn" id="acctX" type="button">Avbryt</button></div>
+</div>
+<div id="acctOutView" hidden><h3>Innlogget som <span id="acctWho"></span></h3><p class="hint">Stjerner, «kan»-status og egne kort lagres på brukeren din og følger deg til andre enheter.</p><div class="row"><button class="btn" id="acctOut" type="button">Logg ut</button><span class="sp"></span><button class="btn" id="acctX2" type="button">Lukk</button></div></div>
+</form></dialog>
+<dialog id="mineDlg"><form id="mineForm" novalidate><h3 id="mineH">Nytt kort</h3>
+<label>Spørsmål (forsiden)<textarea id="mineQ" maxlength="300" required></textarea></label>
+<label>Svar (baksiden)<textarea id="mineA" maxlength="1500" required></textarea></label>
+<p class="hint" id="mineNote"></p>
+<p id="mineErr" class="hint aerr" role="alert" hidden></p>
+<div class="row"><button class="btn primary" type="submit" id="mineSave">Lagre kortet</button><button class="btn" id="mineX" type="button">Avbryt</button><span class="sp"></span><button class="btn" id="mineDel" type="button" hidden>Slett</button></div>
+</form></dialog>
 
 <script>
 const CASES = [
@@ -2244,7 +2280,7 @@ const cats=[...new Set(CARDS.map(c=>c[0]))];
 let deck="Alle", onlyAgain=false, onlyKnown=false, order=[], pos=0;
 let known=new Set(S.get("syg-known",[]));
 let stars=new Set(S.get("syg-stars",[])), onlyStar=false;
-const cid=c=>c[0]+"|"+c[1];
+const cid=c=>c[3]&&c[3].own?"mine:"+c[3].own:c[0]+"|"+c[1];
 function buildOrder(shuffle){
   let list=CARDS.filter(c=>deck==="Alle"||c[0]===deck);
   if(onlyAgain)list=list.filter(c=>!known.has(cid(c)));
@@ -2261,13 +2297,14 @@ function renderDecks(){
   const inB=BEHOV.includes(deck);
   const bsel=`<span class="chip bsel" aria-pressed="${inB}"><span class="blab">Grunnleggende behov</span><select id="bsel" aria-label="Grunnleggende behov: velg kategori"><option value="" ${inB?"":"selected"} disabled hidden>Grunnleggende behov</option>${BEHOV.map(d=>`<option value="${d}" ${d===deck?"selected":""}>${d===BEHOV[0]?"Grunnleggende behov (generelt)":d} (${count(d)})</option>`).join("")}</select></span>`;
   const chipB=(d,extra)=>`<button class="chip${extra||""}" aria-pressed="${d===deck}" data-d="${d}">${d} <span style="opacity:.6">${count(d)}</span></button>`;
-  el.innerHTML=`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+["Alle",...cats.filter(d=>d!==LAST&&d!=="Eksamen")].map(d=>BEHOV.includes(d)?chipB(d," bchip")+(d===BEHOV[0]?bsel:""):chipB(d)).join("")+
+  el.innerHTML=`<div class="minerow">${chipB(MINE," minechip")}<button class="chip addchip" id="mineAdd" title="Lag ditt eget flashcard">+ Nytt kort</button></div>`+`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+chipB("Alle")+[...cats.filter(d=>d!==LAST&&d!=="Eksamen"&&d!==MINE)].map(d=>BEHOV.includes(d)?chipB(d," bchip")+(d===BEHOV[0]?bsel:""):chipB(d)).join("")+
     (cats.includes(LAST)?chipB(LAST," svikt"):"");
   const bs=document.getElementById("bsel");if(bs)bs.onchange=()=>{deck=bs.value;buildOrder(false);renderDecks();renderCard()};
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{deck=b.dataset.d;buildOrder(false);renderDecks();renderCard()});
   document.getElementById("onlyKnown").onclick=()=>{onlyKnown=!onlyKnown;if(onlyKnown){onlyAgain=false;deck="Alle"}buildOrder(false);renderDecks();renderCard()};
   document.getElementById("onlyAgain").onclick=()=>{onlyAgain=!onlyAgain;if(onlyAgain)onlyKnown=false;buildOrder(false);renderDecks();renderCard()};
   document.getElementById("onlyStar").onclick=()=>{onlyStar=!onlyStar;buildOrder(false);renderDecks();renderCard()};
+  document.getElementById("mineAdd").onclick=()=>mineOpen(null);
 }
 function fmtBack(h){
   h=String(h).trim(); let lead="";
@@ -2286,6 +2323,8 @@ function renderCard(){
   const st=document.getElementById("stage");
   const inDeck=CARDS.filter(c=>deck==="Alle"||c[0]===deck);
   const k=inDeck.filter(c=>known.has(cid(c))).length;
+  if(deck===MINE&&!inDeck.length){st.innerHTML=`<div class="empty"><h3>Du har ingen egne kort ennå</h3><p>Lag kort med det du selv vil øve på. ${Acct.uid?"De lagres på brukeren din.":"De lagres i denne nettleseren. Logg inn for å ha dem på alle enhetene dine."}</p><button class="btn primary" id="mineFirst">+ Lag ditt første kort</button></div>`;
+    document.getElementById("mineFirst").onclick=()=>mineOpen(null);return}
   if(!order.length&&onlyStar){st.innerHTML=`<div class="empty"><h3>Ingen stjernemerkede kort her</h3><p>Trykk på stjernen ☆ på et kort for å samle de du vil øve mer på.</p><button class="btn" id="noStar">Vis alle kort</button></div>`;
     document.getElementById("noStar").onclick=()=>{onlyStar=false;buildOrder(false);renderDecks();renderCard()};return}
   if(!order.length&&onlyKnown){st.innerHTML=`<div class="empty"><h3>Ingen kort markert som «kan» ennå</h3><p>Trykk «✓» på et kort, så havner det her.</p><button class="btn" id="noKnown">Vis alle kort</button></div>`;
@@ -2299,7 +2338,7 @@ function renderCard(){
   <div class="card" id="card" tabindex="0" role="button" aria-label="Snu kortet"><div class="card-inner">
     <div class="face front"><span class="cat">${c[0]}${stars.has(cid(c))?`<span class="stbadge" title="Stjernemerket">★</span>`:""}</span><div class="front-q">${c[1]}</div><span class="tap">Trykk eller mellomrom for å snu</span></div>
     <div class="face back"><span class="cat">${c[0]}</span><div class="back-a">${fmtBack(c[2])}</div></div></div></div>
-  <div class="fc-actions"><button class="btn" id="prev">← Forrige</button><button class="btn again" id="again">Øv mer</button><button class="btn star" id="star" aria-pressed="${stars.has(cid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(cid(c))?"★":"☆"}</button><button class="btn know chk" id="know" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="next">Neste →</button><button class="btn" id="shuf">Stokk</button></div>`;
+  <div class="fc-actions"><button class="btn" id="prev">← Forrige</button><button class="btn again" id="again">Øv mer</button><button class="btn star" id="star" aria-pressed="${stars.has(cid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(cid(c))?"★":"☆"}</button><button class="btn know chk" id="know" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="next">Neste →</button><button class="btn" id="shuf">Stokk</button>${c[3]&&c[3].own?`<button class="btn" id="mineEdit" title="Rediger eller slett kortet">✎ Rediger</button>`:""}</div>`;
   const card=document.getElementById("card");
   const hOf=sel=>{const x=card.querySelector(sel);x.style.position="relative";const h=Math.max(300,x.scrollHeight);x.style.position="";return h};
   const frontH=hOf(".face.front"),backH=hOf(".face.back");
@@ -2310,6 +2349,7 @@ function renderCard(){
   document.getElementById("prev").onclick=()=>{pos=(pos-1+order.length)%order.length;renderCard()};
   document.getElementById("next").onclick=()=>{pos=(pos+1)%order.length;renderCard()};
   document.getElementById("shuf").onclick=()=>{buildOrder(true);renderCard()};
+  const me=document.getElementById("mineEdit");if(me)me.onclick=()=>mineOpen(c[3].own);
   document.getElementById("know").onclick=()=>{known.add(cid(c));S.set("syg-known",[...known]);savePrefs();if(onlyAgain){order.splice(pos,1)}else pos++;renderDecks();renderCard()};
   document.getElementById("star").onclick=()=>{const id=cid(c),was=stars.has(id);was?stars.delete(id):stars.add(id);S.set("syg-stars",[...stars]);savePrefs();if(onlyStar&&was){order.splice(pos,1);if(pos>=order.length)pos=0}renderDecks();renderCard()};
   document.getElementById("again").onclick=()=>{known.delete(cid(c));S.set("syg-known",[...known]);savePrefs();if(onlyKnown){order.splice(pos,1)}else pos++;renderDecks();renderCard()};
@@ -2322,36 +2362,111 @@ function renderCard(){
  sw("stage","next","prev");sw("ustage","unext","uprev")})();
 document.addEventListener("keydown",e=>{if(document.getElementById("v-kort").hidden||e.target.tagName==="TEXTAREA")return;if(e.key==="ArrowRight")document.getElementById("next")?.click();if(e.key==="ArrowLeft")document.getElementById("prev")?.click()});
 
-// ---- Brukernavn (Firebase Firestore, uten passord) ----
-// Fyll inn verdiene fra Firebase-prosjektet ditt (se OPPSETT-BRUKERE.md). Er apiKey tom, skjules brukernavn og alt lagres i nettleseren.
+// ---- Egne flashcards ----
+// Lagres i nettleseren, og på brukeren når man er logget inn.
+const MINE="Mine kort";
+const escH=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>({id:m.id.slice(0,40),q:m.q.slice(0,300),a:m.a.slice(0,1500),t:+m.t||0})).slice(0,500);
+let mine=cleanMine(S.get("syg-custom",[]));
+function mineSync(){
+  for(let i=CARDS.length-1;i>=0;i--)if(CARDS[i][3]&&CARDS[i][3].own)CARDS.splice(i,1);
+  mine.forEach(m=>CARDS.push([MINE,escH(m.q),escH(m.a).replace(/\n+/g,"<br>"),{own:m.id}]));
+  if(window.searchReset)searchReset();
+}
+function mineChanged(){S.set("syg-custom",mine);mineSync();if(Acct.uid)acctSave();else setSync("local","Lagret i denne nettleseren")}
+mineSync();
+let mineEditing=null;
+function mineOpen(id){
+  const dlg=document.getElementById("mineDlg"),m=id?mine.find(x=>x.id===id):null;mineEditing=m?m.id:null;
+  document.getElementById("mineH").textContent=m?"Rediger kortet":"Nytt kort";
+  document.getElementById("mineQ").value=m?m.q:"";document.getElementById("mineA").value=m?m.a:"";
+  document.getElementById("mineDel").hidden=!m;document.getElementById("mineErr").hidden=true;
+  document.getElementById("mineNote").textContent=Acct.uid?"Kortet lagres på brukeren «"+Acct.name+"».":"Du er ikke logget inn, så kortet lagres bare i denne nettleseren.";
+  dlg.showModal();document.getElementById("mineQ").focus();
+}
+(function(){const dlg=document.getElementById("mineDlg");if(!dlg)return;
+  const err=t=>{const e=document.getElementById("mineErr");e.textContent=t;e.hidden=!t};
+  document.getElementById("mineForm").onsubmit=ev=>{ev.preventDefault();
+    const q=document.getElementById("mineQ").value.trim(),a=document.getElementById("mineA").value.trim();
+    if(!q||!a){err("Skriv både spørsmål og svar.");return}
+    if(!mineEditing&&mine.length>=500){err("Du kan ha opptil 500 egne kort.");return}
+    let id=mineEditing;
+    if(id){const m=mine.find(x=>x.id===id);m.q=q;m.a=a;m.t=Date.now()}
+    else{id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);mine.push({id,q,a,t:Date.now()})}
+    mineChanged();dlg.close();
+    deck=MINE;onlyAgain=false;onlyKnown=false;onlyStar=false;buildOrder(false);
+    const k=order.findIndex(c=>c[3]&&c[3].own===id);pos=k<0?0:k;renderDecks();renderCard()};
+  document.getElementById("mineDel").onclick=()=>{if(!mineEditing)return;if(!confirmDel())return;
+    const id=mineEditing;mine=mine.filter(x=>x.id!==id);known.delete("mine:"+id);stars.delete("mine:"+id);S.set("syg-known",[...known]);S.set("syg-stars",[...stars]);
+    mineChanged();dlg.close();buildOrder(false);renderDecks();renderCard()};
+  // Bekreft sletting i knappen i stedet for en nettleserdialog
+  let armed=0;function confirmDel(){const b=document.getElementById("mineDel");if(Date.now()-armed<4000){armed=0;b.textContent="Slett";return true}armed=Date.now();b.textContent="Trykk igjen for å slette";setTimeout(()=>{b.textContent="Slett"},4000);return false}
+  document.getElementById("mineX").onclick=()=>dlg.close();
+})();
+
+// ---- Brukere med passord (Firebase Authentication + Firestore) ----
+// Se OPPSETT-BRUKERE.md. Brukernavnet gjøres om til en intern e-postadresse fordi Firebase krever det; ingen e-post blir sendt.
 const FIREBASE_CONFIG={apiKey:"AIzaSyAbC8Sm8ITkYsryvOAU_tf4i-Yi2iE_3VY",authDomain:"syg1000-eksamenstrening.firebaseapp.com",projectId:"syg1000-eksamenstrening",appId:"1:436441709658:web:8b78172b86790792d5ac63"};
-const Acct={name:S.get("syg-user",""),db:null,timer:null};
+const ACCT_MAIL="@brukere.syg1000-eksamenstrening.app";
+const Acct={name:"",uid:null,db:null,auth:null,timer:null};
 const acctNorm=v=>v.trim().toLowerCase().replace(/æ/g,"ae").replace(/ø/g,"o").replace(/å/g,"a").replace(/\s+/g,"-");
 const acctOk=n=>/^[a-z0-9_-]{3,30}$/.test(n);
-function acctDoc(){return Acct.db.collection("users").doc(Acct.name)}
-function acctSave(){if(!Acct.name||!Acct.db)return;clearTimeout(Acct.timer);Acct.timer=setTimeout(()=>{acctDoc().set({known:[...known],stars:[...stars],updated:Date.now()}).then(()=>setSync("cloud","Lagret på «"+Acct.name+"»")).catch(()=>setSync("error","Kunne ikke lagre på brukernavnet, lagret i nettleseren"))},700)}
-async function acctLoad(mode){const n=Acct.name;try{const d=await acctDoc().get();if(Acct.name!==n)return;const v=d.exists?d.data():{};
-  // mode "reset": bytter fra en annen bruker, så starter helt på den nye brukerens egne data.
-  // mode "adopt": første gang noen velger navn: finnes navnet fra før, brukes bare det som ligger lagret der; ellers tas dagens fremgang med.
-  if(mode==="reset"||(mode==="adopt"&&d.exists)){known=new Set(v.known||[]);stars=new Set(v.stars||[])}
-  else{known=new Set([...(v.known||[]),...known]);stars=new Set([...(v.stars||[]),...stars])}
-  if(mode==="reset"){pos=0}S.set("syg-known",[...known]);S.set("syg-stars",[...stars]);
-  setSync("cloud","Lagret på «"+n+"»");buildOrder(false);renderDecks();renderCard();if(window.quizRefresh)quizRefresh();
-  if(!d.exists||known.size!==(v.known||[]).length||stars.size!==(v.stars||[]).length)acctSave()}catch(e){setSync("error","Kunne ikke hente brukernavnet, lagret i nettleseren")}}
-function acctUI(){const b=document.getElementById("acctBtn");if(!b)return;b.hidden=false;b.textContent=Acct.name?"Bruker: "+Acct.name:"Bruker"}
-function acctInit(){if(!FIREBASE_CONFIG.apiKey)return;
+function acctDoc(){return Acct.db.collection("accounts").doc(Acct.uid)}
+function acctSave(){if(!Acct.uid||!Acct.db)return;clearTimeout(Acct.timer);Acct.timer=setTimeout(()=>{
+  acctDoc().set({name:Acct.name,known:[...known],stars:[...stars],custom:mine,updated:Date.now()})
+  .then(()=>setSync("cloud","Lagret på «"+Acct.name+"»")).catch(()=>setSync("error","Kunne ikke lagre på brukeren, lagret i nettleseren"))},700)}
+function acctApply(v){
+  known=new Set(v.known||[]);stars=new Set(v.stars||[]);mine=cleanMine(v.custom);
+  S.set("syg-known",[...known]);S.set("syg-stars",[...stars]);S.set("syg-custom",mine);mineSync();
+  buildOrder(false);renderDecks();renderCard();if(typeof renderUFilter==="function"){renderUFilter();renderUCard()}if(window.quizRefresh)quizRefresh()}
+async function acctLoad(){const uid=Acct.uid;setSync("saving","Henter brukeren …");try{const d=await acctDoc().get();if(Acct.uid!==uid)return;
+  if(d.exists){acctApply(d.data());setSync("cloud","Lagret på «"+Acct.name+"»");return}
+  // Ny bruker: ta med det som ligger i nettleseren, og fremgangen fra et gammelt brukernavn uten passord hvis det finnes.
+  let old={};try{const o=await Acct.db.collection("users").doc(Acct.name).get();if(o.exists)old=o.data()||{}}catch(e){}
+  acctApply({known:[...new Set([...(old.known||[]),...known])],stars:[...new Set([...(old.stars||[]),...stars])],custom:mine});acctSave()
+}catch(e){setSync("error","Kunne ikke hente brukeren, lagret i nettleseren")}}
+function acctUI(){const b=document.getElementById("acctBtn");if(!b)return;b.hidden=false;b.textContent=Acct.uid?"Bruker: "+Acct.name:"Logg inn"}
+function acctClearLocal(){known=new Set();stars=new Set();mine=[];S.set("syg-known",[]);S.set("syg-stars",[]);S.set("syg-custom",[]);S.set("syg-pos",null);pos=0;mineSync();
+  buildOrder(false);renderDecks();renderCard();if(typeof renderUFilter==="function"){renderUFilter();renderUCard()}if(window.quizRefresh)quizRefresh()}
+function acctInit(){acctUI();if(!FIREBASE_CONFIG.apiKey)return;
   const load=src=>new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)});
   const B="https://www.gstatic.com/firebasejs/10.12.2/";
-  const ready=window.firebase?Promise.resolve():load(B+"firebase-app-compat.js").then(()=>load(B+"firebase-firestore-compat.js"));
-  ready.then(()=>{firebase.initializeApp(FIREBASE_CONFIG);Acct.db=firebase.firestore();acctUI();if(Acct.name)acctLoad()}).catch(()=>{})}
-(function(){const dlg=document.getElementById("acctDlg"),btn=document.getElementById("acctBtn"),err=document.getElementById("acctErr"),inp=document.getElementById("acctName"),out=document.getElementById("acctOut");if(!dlg||!btn)return;
+  const ready=window.firebase?Promise.resolve():load(B+"firebase-app-compat.js").then(()=>Promise.all([load(B+"firebase-auth-compat.js"),load(B+"firebase-firestore-compat.js")]));
+  ready.then(()=>{firebase.initializeApp(FIREBASE_CONFIG);Acct.db=firebase.firestore();Acct.auth=firebase.auth();
+    Acct.auth.onAuthStateChanged(u=>{
+      if(u){const n=(u.email||"").split("@")[0];if(Acct.uid===u.uid)return;Acct.uid=u.uid;Acct.name=n;S.set("syg-user",n);acctUI();acctLoad()}
+      else{const was=!!Acct.uid;Acct.uid=null;Acct.name="";acctUI();if(was){acctClearLocal();setSync("local","Lagret i denne nettleseren")}}
+    })}).catch(()=>{})}
+(function(){const dlg=document.getElementById("acctDlg"),btn=document.getElementById("acctBtn");if(!dlg||!btn)return;
+  const $=id=>document.getElementById(id),err=$("acctErr");let mode="in";
   const show=t=>{err.textContent=t||"";err.hidden=!t};
-  btn.onclick=()=>{show("");inp.value=Acct.name;out.hidden=!Acct.name;dlg.showModal();inp.focus()};
-  document.getElementById("acctForm").onsubmit=ev=>{ev.preventDefault();const n=acctNorm(inp.value);
-    if(!acctOk(n)){show("Bruk 3–30 tegn: bokstaver, tall, - og _.");return}
-    const prev=Acct.name;Acct.name=n;S.set("syg-user",n);acctUI();dlg.close();if(n===prev)acctLoad();else{if(prev){known=new Set();stars=new Set();S.set("syg-known",[]);S.set("syg-stars",[]);S.set("syg-pos",null);buildOrder(false);renderDecks();renderCard();renderUFilter();renderUCard()}acctLoad(prev?"reset":"adopt")}};
-  out.onclick=()=>{clearTimeout(Acct.timer);Acct.name="";S.set("syg-user","");known=new Set();stars=new Set();S.set("syg-known",[]);S.set("syg-stars",[]);S.set("syg-pos",null);pos=0;buildOrder(false);renderDecks();renderCard();renderUFilter();renderUCard();if(window.quizRefresh)quizRefresh();acctUI();setSync("local","Lagret på denne enheten");dlg.close()};
-  document.getElementById("acctX").onclick=()=>dlg.close();
+  const setMode=m=>{mode=m;dlg.querySelectorAll(".atab").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===m)));
+    $("acctPw2L").hidden=m!=="new";$("acctNote").hidden=m!=="new";$("acctIn").textContent=m==="new"?"Lag bruker":"Logg inn";
+    $("acctPw").autocomplete=m==="new"?"new-password":"current-password";show("")};
+  dlg.querySelectorAll(".atab").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+  btn.onclick=()=>{show("");const inn=!!Acct.uid;$("acctInView").hidden=inn;$("acctOutView").hidden=!inn;
+    if(inn)$("acctWho").textContent=Acct.name;else{setMode("in");$("acctName").value=S.get("syg-user","")||"";$("acctPw").value="";$("acctPw2").value=""}
+    dlg.showModal();if(!inn)($("acctName").value?$("acctPw"):$("acctName")).focus()};
+  const msg=e=>{const c=(e&&e.code)||"";
+    if(c==="auth/email-already-in-use")return"Brukernavnet er allerede tatt. Velg et annet, eller logg inn.";
+    if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c))return"Feil brukernavn eller passord.";
+    if(c==="auth/weak-password")return"Passordet må ha minst 6 tegn.";
+    if(c==="auth/too-many-requests")return"For mange forsøk. Vent litt og prøv igjen.";
+    if(c==="auth/network-request-failed")return"Fikk ikke kontakt. Sjekk nettet og prøv igjen.";
+    if(/operation-not-allowed|configuration-not-found|admin-restricted/.test(c))return"Innlogging med passord er ikke slått på ennå.";
+    if(c==="auth/unauthorized-domain")return"Innlogging virker ikke på denne adressen.";
+    return"Noe gikk galt"+(c?" ("+c+")":"")+". Prøv igjen."};
+  $("acctForm").onsubmit=async ev=>{ev.preventDefault();show("");
+    if(!Acct.auth){show("Innlogging er ikke tilgjengelig akkurat nå. Prøv å laste inn siden på nytt.");return}
+    const n=acctNorm($("acctName").value),pw=$("acctPw").value;
+    if(!acctOk(n)){show("Brukernavnet må ha 3–30 tegn: bokstaver, tall, - og _.");return}
+    if(pw.length<6){show("Passordet må ha minst 6 tegn.");return}
+    if(mode==="new"&&pw!==$("acctPw2").value){show("Passordene er ikke like.");return}
+    const b=$("acctIn");b.disabled=true;
+    try{if(mode==="new")await Acct.auth.createUserWithEmailAndPassword(n+ACCT_MAIL,pw);else{if(S.get("syg-user","")!==n)acctClearLocal();await Acct.auth.signInWithEmailAndPassword(n+ACCT_MAIL,pw)}dlg.close()}
+    catch(e){show(msg(e))}finally{b.disabled=false}};
+  $("acctOut").onclick=()=>{clearTimeout(Acct.timer);dlg.close();if(Acct.auth)Acct.auth.signOut()};
+  $("acctX").onclick=()=>dlg.close();$("acctX2").onclick=()=>dlg.close();
   acctInit()})();
 
 // ---- Utdypende flashcards ----
@@ -2448,7 +2563,7 @@ initCloud();
   if(!inp||!box)return;
   const strip=h=>{const d=document.createElement("div");d.innerHTML=String(h||"");return (d.textContent||"").replace(/\s+/g," ").trim()};
   const eh=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  let IDX=null;
+  let IDX=null;window.searchReset=()=>{IDX=null};
   function build(){
     IDX=[];
     CARDS.forEach(c=>IDX.push({g:"Flashcards",t:strip(c[1]),m:c[0],b:strip(c[2]),go:()=>goCard(c)}));

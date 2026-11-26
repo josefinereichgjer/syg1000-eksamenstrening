@@ -1,37 +1,44 @@
-# Oppsett av brukernavn (Firebase)
+# Oppsett av brukere med passord (Firebase)
 
-Siden lar hver person velge et brukernavn, uten passord og uten Claude-konto. Stjernemerkede flashcards og «kan»-status lagres på brukernavnet, og kommer tilbake når samme navn skrives inn på en annen enhet.
-Funksjonen er avslått til du legger inn en Firebase-konfigurasjon. Uten den lagres alt bare i nettleseren.
+Hver person kan lage en bruker med brukernavn og passord. Stjernemerkede flashcards, «kan»-status og egne flashcards lagres på brukeren og kommer tilbake når man logger inn på en annen enhet. Uten innlogging lagres alt bare i nettleseren.
 
-1. Gå til https://console.firebase.google.com og velg **Add project**. Gi prosjektet et navn, og Google Analytics kan slås av.
-2. **Build → Firestore Database → Create database.** Velg en region i Europa og start i **production mode**.
-3. Under **Rules** i Firestore limer du inn dette og trykker **Publish**:
+Brukernavnet gjøres internt om til en e-postadresse (`brukernavn@brukere.syg1000-eksamenstrening.app`) fordi Firebase krever det. Det sendes aldri e-post, og passordet kan derfor ikke tilbakestilles av brukeren selv. Du kan slette en bruker under **Authentication → Users**, så kan personen lage den på nytt.
+
+## Engangsoppsett i Firebase-konsollen
+
+Prosjektet `syg1000-eksamenstrening` finnes allerede. Gå til https://console.firebase.google.com og åpne det.
+
+1. **Build → Authentication → Get started → Sign-in method → Email/Password → Enable → Save.** (Bare den første bryteren, ikke «Email link».)
+2. **Authentication → Settings → Authorized domains:** sjekk at `josefinereichgjer.github.io` står i listen. Legg den til hvis ikke.
+3. **Firestore Database → Rules:** erstatt alt med dette og trykk **Publish**:
 
    ```
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
+       // Nye brukere med passord: bare eieren kan lese og skrive sitt eget dokument.
+       match /accounts/{uid} {
+         allow read: if request.auth != null && request.auth.uid == uid;
+         allow create, update: if request.auth != null && request.auth.uid == uid
+           && request.resource.data.keys().hasOnly(['name', 'known', 'stars', 'custom', 'updated'])
+           && request.resource.data.known is list && request.resource.data.known.size() <= 3000
+           && request.resource.data.stars is list && request.resource.data.stars.size() <= 3000
+           && request.resource.data.custom is list && request.resource.data.custom.size() <= 500;
+         allow delete: if false;
+       }
+       // Gamle brukernavn uten passord: kan bare leses, slik at fremgangen kan flyttes over.
        match /users/{name} {
          allow get: if name.matches('[a-z0-9_-]{3,30}');
-         allow list, delete: if false;
-         allow create, update: if name.matches('[a-z0-9_-]{3,30}')
-           && request.resource.data.keys().hasOnly(['known', 'stars', 'updated'])
-           && request.resource.data.known is list
-           && request.resource.data.stars is list
-           && request.resource.data.known.size() <= 3000
-           && request.resource.data.stars.size() <= 3000;
+         allow list, write: if false;
        }
      }
    }
    ```
 
-   Reglene gjør at ingen kan liste opp eller slette brukernavn, og at bare disse tre feltene kan skrives, med en størrelsesgrense.
+## Flytting fra gamle brukernavn
 
-4. **Project settings (tannhjulet) → General → Your apps → Web (`</>`)**. Registrer en app og kopier verdiene i `firebaseConfig`.
-5. Åpne `index.html`, finn `const FIREBASE_CONFIG=` og fyll inn `apiKey`, `projectId` og `appId`. Lagre og push til GitHub.
+Den som hadde et brukernavn uten passord, velger **Lag bruker** med samme navn. Da hentes stjernene og «kan»-statusen fra det gamle navnet automatisk.
 
 ## Sikkerhet
 
-Det er ikke noe passord, så alle som kjenner et brukernavn kan se og endre den personens stjerner. Det er greit for flashcards, men ikke lagre noe sensitivt. Be folk velge et navn som ikke er lett å gjette, og ikke bruke fullt navn.
-Hvis to personer velger samme navn, slås stjernene deres sammen.
-`apiKey` i en nettside-app er ikke hemmelig. Det er reglene i punkt 3 som beskytter dataene.
+`apiKey` i en nettside-app er ikke hemmelig. Det er reglene over som beskytter dataene: hver bruker kan bare se og endre sitt eget dokument. Ikke lagre sensitive opplysninger i egne kort.
