@@ -26,6 +26,14 @@ Prosjektet `syg1000-eksamenstrening` finnes allerede. Gå til https://console.fi
            && request.resource.data.custom is list && request.resource.data.custom.size() <= 500;
          allow delete: if false;
        }
+       // Bilder på flashcards: bare eieren kan lese, lagre og slette sine egne bilder.
+       match /accounts/{uid}/images/{img} {
+         allow read, delete: if request.auth != null && request.auth.uid == uid;
+         allow create, update: if request.auth != null && request.auth.uid == uid
+           && request.resource.data.keys().hasOnly(['data', 'updated'])
+           && request.resource.data.data is string
+           && request.resource.data.data.size() < 400000;
+       }
        // Gamle brukernavn uten passord: kan bare leses, slik at fremgangen kan flyttes over.
        match /users/{name} {
          allow get: if name.matches('[a-z0-9_-]{3,30}');
