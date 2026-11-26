@@ -2286,12 +2286,14 @@ renderList();renderCase();
 // Flashcards
 (function(){const D="Svikt mellom behov";const isG=c=>c[0]===D&&!/\(/.test(c[1]);const g=CARDS.filter(isG);const rest=CARDS.filter(c=>!isG(c));const i=rest.findIndex(c=>c[0]===D);if(i>=0)rest.splice(i,0,...g);else rest.push(...g);CARDS.length=0;CARDS.push(...rest)})();
 const cats=[...new Set(CARDS.map(c=>c[0]))];
+const PICK="Valgte temaer";let picked=new Set(S.get("syg-picked",[])),pickOpen=false;
+const inD=(c,d)=>d==="Alle"||(d===PICK?picked.has(c[0]):c[0]===d);
 let deck="Alle", onlyAgain=false, onlyKnown=false, order=[], pos=0;
 let known=new Set(S.get("syg-known",[]));
 let stars=new Set(S.get("syg-stars",[])), onlyStar=false;
 const cid=c=>c[3]&&c[3].own?"mine:"+c[3].own:c[0]+"|"+c[1];
 function buildOrder(shuffle){
-  let list=CARDS.filter(c=>deck==="Alle"||c[0]===deck);
+  let list=CARDS.filter(c=>inD(c,deck));
   if(onlyAgain)list=list.filter(c=>!known.has(cid(c)));
   if(onlyKnown)list=list.filter(c=>known.has(cid(c)));
   if(onlyStar)list=list.filter(c=>stars.has(cid(c)));
@@ -2300,13 +2302,13 @@ function buildOrder(shuffle){
 }
 function renderDecks(){
   const el=document.getElementById("decks");
-  const count=d=>CARDS.filter(c=>d==="Alle"||c[0]===d).length;
+  const count=d=>CARDS.filter(c=>inD(c,d)).length;
   const LAST="Svikt mellom behov";
   const BEHOV=["Grunnleggende behov","Respirasjon","Sirkulasjon","Temperatur","Væske og ernæring","Eliminasjon","Aktivitet","Søvn og hvile","Personlig hygiene","Seksualitet","Psykososiale behov"].filter(d=>cats.includes(d));
   const inB=BEHOV.includes(deck);
   const bsel=`<span class="chip bsel" aria-pressed="${inB}"><span class="blab">Grunnleggende behov</span><select id="bsel" aria-label="Grunnleggende behov: velg kategori"><option value="" ${inB?"":"selected"} disabled hidden>Grunnleggende behov</option>${BEHOV.map(d=>`<option value="${d}" ${d===deck?"selected":""}>${d===BEHOV[0]?"Grunnleggende behov (generelt)":d} (${count(d)})</option>`).join("")}</select></span>`;
   const chipB=(d,extra)=>`<button class="chip${extra||""}" aria-pressed="${d===deck}" data-d="${d}">${d} <span style="opacity:.6">${count(d)}</span></button>`;
-  el.innerHTML=`<div class="minerow">${chipB(MINE," minechip")}<button class="chip addchip" id="mineAdd" title="Lag ditt eget flashcard">+ Nytt kort</button></div>`+`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+chipB("Alle")+[...cats.filter(d=>d!==LAST&&d!=="Eksamen"&&d!==MINE)].map(d=>BEHOV.includes(d)?chipB(d," bchip")+(d===BEHOV[0]?bsel:""):chipB(d)).join("")+
+  el.innerHTML=`<div class="minerow">${chipB(MINE," minechip")}<button class="chip addchip" id="mineAdd" title="Lag ditt eget flashcard">+ Nytt kort</button><button class="chip pickchip" id="pickBtn" aria-pressed="${deck===PICK}" aria-expanded="${pickOpen}" title="Velg hvilke temaer du vil øve på">☑ ${picked.size?"Valgte temaer <span style=\"opacity:.6\">"+count(PICK)+"</span>":"Velg temaer"}</button></div>`+`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+chipB("Alle")+bsel+[...cats.filter(d=>d!==LAST&&d!=="Eksamen"&&d!==MINE&&!BEHOV.includes(d))].map(d=>chipB(d)).join("")+
     (cats.includes(LAST)?chipB(LAST," svikt"):"");
   const bs=document.getElementById("bsel");if(bs)bs.onchange=()=>{deck=bs.value;buildOrder(false);renderDecks();renderCard()};
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{deck=b.dataset.d;buildOrder(false);renderDecks();renderCard()});
@@ -2314,6 +2316,23 @@ function renderDecks(){
   document.getElementById("onlyAgain").onclick=()=>{onlyAgain=!onlyAgain;if(onlyAgain)onlyKnown=false;buildOrder(false);renderDecks();renderCard()};
   document.getElementById("onlyStar").onclick=()=>{onlyStar=!onlyStar;buildOrder(false);renderDecks();renderCard()};
   document.getElementById("mineAdd").onclick=()=>mineOpen(null);
+  // Velg temaer: huk av de temaene du vil ha flashcards fra
+  const all=cats.filter(d=>d!=="Eksamen");const other=all.filter(d=>!BEHOV.includes(d));
+  const box=d=>`<label class="pk"><input type="checkbox" value="${escH(d)}" ${picked.has(d)?"checked":""}><span>${d===BEHOV[0]?"Generelt":d}</span><em>${count(d)}</em></label>`;
+  if(pickOpen){const pn=document.createElement("div");pn.className="pickpanel";pn.id="pickPanel";
+    pn.innerHTML=`<div class="pkh"><b>Velg temaer</b><span>Huk av det du vil øve på</span></div>
+    <div class="pkg"><div class="pkt">Grunnleggende behov</div><div class="pkl">${BEHOV.map(box).join("")}</div></div>
+    <div class="pkg"><div class="pkt">Andre temaer</div><div class="pkl">${other.map(box).join("")}</div></div>
+    <div class="pkb"><button class="btn primary" id="pkGo" ${picked.size?"":"disabled"}>Vis ${count(PICK)} kort</button><button class="btn" id="pkAll">Velg alle</button><button class="btn" id="pkNone">Fjern alle</button><span style="flex:1"></span><button class="btn" id="pkX">Lukk</button></div>`;
+    el.appendChild(pn);
+    const upd=()=>{S.set("syg-picked",[...picked]);if(deck===PICK){buildOrder(false);renderCard()}const g=document.getElementById("pkGo");g.textContent="Vis "+count(PICK)+" kort";g.disabled=!picked.size;
+      const pb=document.getElementById("pickBtn");pb.innerHTML="☑ "+(picked.size?`Valgte temaer <span style="opacity:.6">${count(PICK)}</span>`:"Velg temaer")};
+    pn.querySelectorAll("input").forEach(i=>i.onchange=()=>{i.checked?picked.add(i.value):picked.delete(i.value);upd()});
+    document.getElementById("pkAll").onclick=()=>{all.forEach(d=>picked.add(d));pn.querySelectorAll("input").forEach(i=>i.checked=true);upd()};
+    document.getElementById("pkNone").onclick=()=>{picked.clear();pn.querySelectorAll("input").forEach(i=>i.checked=false);upd()};
+    document.getElementById("pkGo").onclick=()=>{deck=PICK;pickOpen=false;buildOrder(false);renderDecks();renderCard()};
+    document.getElementById("pkX").onclick=()=>{pickOpen=false;renderDecks()};}
+  document.getElementById("pickBtn").onclick=()=>{pickOpen=!pickOpen;renderDecks()};
 }
 function fmtBack(h){
   h=String(h).trim(); let lead="";
@@ -2330,7 +2349,9 @@ function fmtBack(h){
 }
 function renderCard(){
   const st=document.getElementById("stage");
-  const inDeck=CARDS.filter(c=>deck==="Alle"||c[0]===deck);
+  const inDeck=CARDS.filter(c=>inD(c,deck));
+  if(deck===PICK&&!inDeck.length){st.innerHTML=`<div class="empty"><h3>Ingen temaer valgt</h3><p>Huk av de temaene du vil øve på, så får du bare flashcards fra dem.</p><button class="btn primary" id="pickFirst">Velg temaer</button></div>`;
+    document.getElementById("pickFirst").onclick=()=>{pickOpen=true;renderDecks()};return}
   const k=inDeck.filter(c=>known.has(cid(c))).length;
   if(deck===MINE&&!inDeck.length){st.innerHTML=`<div class="empty"><h3>Du har ingen egne kort ennå</h3><p>Lag kort med det du selv vil øve på. ${Acct.uid?"De lagres på brukeren din.":"De lagres i denne nettleseren. Logg inn for å ha dem på alle enhetene dine."}</p><button class="btn primary" id="mineFirst">+ Lag ditt første kort</button></div>`;
     document.getElementById("mineFirst").onclick=()=>mineOpen(null);return}
@@ -2942,5 +2963,22 @@ mark[class^="hl-"],i[class^="hl-"]{color:inherit;border-radius:4px;padding:0 .12
 #mineDlg .rte span[style*="background"]{border-radius:4px;color:inherit}
 .edbadge{margin-left:8px;font-size:11px;font-weight:600;opacity:.7;text-transform:none;letter-spacing:0}
 @media (max-width:720px){.fc-actions #mineEdit{order:7}.rtbar{gap:4px;padding:5px}.rtbar .rtb{min-width:0;min-height:0;height:32px;width:32px;padding:0}.rtbar .rtb[data-hl="x"]{width:auto;padding:0 8px}.rtbar .rtb.sw i{width:18px;height:18px}}
+</style>
+<style>
+.fc-top .chip.pickchip{border-color:var(--green)}
+.fc-top .chip.pickchip[aria-pressed="true"]{background:var(--green);color:var(--on-primary);border-color:var(--green)}
+.pickpanel{flex:0 0 100%;margin-top:6px;padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:var(--paper);color:var(--ink);box-shadow:0 10px 28px rgba(20,30,60,.12)}
+.pickpanel .pkh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin-bottom:8px}.pickpanel .pkh b{font-size:17px}.pickpanel .pkh span{font-size:13px;color:var(--muted)}
+.pickpanel .pkt{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+.pickpanel .pkl{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.pickpanel .pk{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:15px;user-select:none}
+.pickpanel .pk:hover{border-color:var(--muted)}
+.pickpanel .pk:has(input:checked){background:var(--sel-bg);border-color:var(--green)}
+.pickpanel .pk input{width:18px;height:18px;margin:0;accent-color:var(--green);flex:none}
+.pickpanel .pk span{flex:1}.pickpanel .pk em{font-style:normal;font-size:13px;color:var(--muted)}
+.pickpanel .pkb{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.pickpanel .pkb .btn[disabled]{opacity:.5;cursor:default}
+.pickpanel{box-sizing:border-box;min-width:0;max-width:100%}.pickpanel .pk{min-width:0}.pickpanel .pk span{min-width:0;overflow-wrap:anywhere}
+@media (max-width:720px){.pickpanel{padding:12px}.pickpanel .pkl{grid-template-columns:repeat(2,minmax(0,1fr))}.pickpanel .pk em{font-size:12px}.pickpanel .pk{padding:8px 10px;font-size:14px;gap:8px}}
 </style>
 </body></html>
