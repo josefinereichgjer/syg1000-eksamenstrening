@@ -2245,6 +2245,10 @@ function renderList(){
   const el=document.getElementById("caselist");
   const groups=[...new Set(CASES.map(c=>c.group))];
   el.innerHTML=groups.map(g=>`<div class="cgroup"><h3 class="ghead">${g}</h3><div class="crow">`+CASES.filter(c=>c.group===g).map(c=>`<button data-id="${c.id}" aria-current="${c.id===current}"><b>${c.name}</b></button>`).join("")+`</div></div>`).join("");
+  let cs=document.getElementById("caseSel");if(!cs){cs=document.createElement("label");cs.id="caseSel";cs.className="casesel";el.parentNode.insertBefore(cs,el)}
+  const cc=CASES.find(c=>c.id===current);
+  cs.innerHTML=`<span class="cselk">Case</span><span class="cselv">${cc?cc.name:"Velg case"}</span><select aria-label="Velg case">${groups.map(g=>`<optgroup label="${g}">${CASES.filter(c=>c.group===g).map(c=>`<option value="${c.id}"${c.id===current?" selected":""}>${c.name}</option>`).join("")}</optgroup>`).join("")}</select>`;
+  cs.querySelector("select").onchange=e=>{current=e.target.value;S.set("syg-case",current);renderList();renderCase();window.scrollTo({top:0,behavior:"smooth"})};
   el.querySelectorAll("button").forEach(b=>b.onclick=()=>{current=b.dataset.id;S.set("syg-case",current);const st=el.scrollTop;renderList();el.scrollTop=st;renderCase();window._sbUpd&&window._sbUpd();window.scrollTo({top:0,behavior:"smooth"})});
 }
 function renderCase(){
@@ -2312,8 +2316,15 @@ function renderDecks(){
   const inB=BEHOV.includes(deck);
   const bsel=`<span class="chip bsel" aria-pressed="${inB}"><span class="blab">Grunnleggende behov</span><select id="bsel" aria-label="Grunnleggende behov: velg kategori"><option value="" ${inB?"":"selected"} disabled hidden>Grunnleggende behov</option>${BEHOV.map(d=>`<option value="${d}" ${d===deck?"selected":""}>${d===BEHOV[0]?"Grunnleggende behov (generelt)":d} (${count(d)})</option>`).join("")}</select></span>`;
   const chipB=(d,extra)=>`<button class="chip${extra||""}" aria-pressed="${d===deck}" data-d="${d}">${d} <span style="opacity:.6">${count(d)}</span></button>`;
-  el.innerHTML=`<div class="minerow">${chipB(MINE," minechip")}<button class="chip addchip" id="mineAdd" title="Lag ditt eget flashcard">+ Nytt kort</button>${HIDDEN.size?`<button class="chip delchip" id="delBtn" title="Se og gjenopprett kort du har slettet">Slettede ${HIDDEN.size}</button>`:""}<button class="chip pickchip" id="pickBtn" aria-pressed="${deck===PICK}" aria-expanded="${pickOpen}" title="Velg hvilke temaer du vil øve på">☑ ${picked.size?"Valgte temaer <span style=\"opacity:.6\">"+count(PICK)+"</span>":"Velg temaer"}</button></div>`+`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+chipB("Alle")+bsel+[...cats.filter(d=>d!==LAST&&d!=="Eksamen"&&d!==MINE&&!BEHOV.includes(d))].map(d=>chipB(d)).join("")+
+  el.innerHTML=`<div class="minerow">${chipB(MINE," minechip")}<button class="chip addchip" id="mineAdd" title="Lag ditt eget flashcard" aria-label="Nytt kort">+<span class="addtxt"> Nytt kort</span></button>${HIDDEN.size?`<button class="chip delchip" id="delBtn" title="Se og gjenopprett kort du har slettet">Slettede ${HIDDEN.size}</button>`:""}<button class="chip pickchip" id="pickBtn" aria-pressed="${deck===PICK}" aria-expanded="${pickOpen}" title="Velg hvilke temaer du vil øve på">☑ ${picked.size?"Valgte temaer <span style=\"opacity:.6\">"+count(PICK)+"</span>":"Velg temaer"}</button></div>`+`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+chipB("Alle")+bsel+[...cats.filter(d=>d!==LAST&&d!=="Eksamen"&&d!==MINE&&!BEHOV.includes(d))].map(d=>chipB(d)).join("")+
     (cats.includes(LAST)?chipB(LAST," svikt"):"");
+  // Mobil: alle kategoriene i én nedtrekksliste
+  {const others=cats.filter(d=>!BEHOV.includes(d)&&d!=="Eksamen"&&d!==MINE&&d!==LAST).concat(cats.includes(LAST)?[LAST]:[]);
+   const op=(d,lab)=>`<option value="${escH(d)}"${d===deck?" selected":""}>${escH(lab||d)} (${count(d)})</option>`;
+   const cur=deck===PICK?"Valgte temaer":deck==="Alle"?"Alle kategorier":deck;
+   const fs=document.createElement("label");fs.className="fcsel";
+   fs.innerHTML=`<span class="fcselv">${escH(cur)} <span style="opacity:.6">${count(deck)}</span></span><select aria-label="Velg kategori">${op("Alle","Alle kategorier")}${op(MINE)}${picked.size?op(PICK,"Valgte temaer"):""}<optgroup label="Grunnleggende behov">${BEHOV.map(d=>op(d,d===BEHOV[0]?"Grunnleggende behov (generelt)":d)).join("")}</optgroup><optgroup label="Andre temaer">${others.map(d=>op(d)).join("")}</optgroup></select>`;
+   el.appendChild(fs);fs.querySelector("select").onchange=e=>{deck=e.target.value;buildOrder(false);renderDecks();renderCard()}}
   const bs=document.getElementById("bsel");if(bs)bs.onchange=()=>{deck=bs.value;buildOrder(false);renderDecks();renderCard()};
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{deck=b.dataset.d;buildOrder(false);renderDecks();renderCard()});
   document.getElementById("onlyKnown").onclick=()=>{onlyKnown=!onlyKnown;if(onlyKnown){onlyAgain=false;deck="Alle"}buildOrder(false);renderDecks();renderCard()};
@@ -2655,7 +2666,7 @@ function uList(){const L=UFC[uMode];return L.filter(c=>(uFilter==="all"||(uFilte
 function uSeq(){const L=uList();if(!uOrder||uOrder.length!==L.length)uOrder=L.map((_,i)=>i);return uOrder.map(i=>L[i])}
 function renderUFilter(){const f=document.getElementById("ufilter");const keys=Object.keys(NEEDS).filter(k=>uMode==="T"||k!=="G");
  const nh=[...UHIDDEN.keys()].filter(k=>k.startsWith("u:"+uMode+":")).length;
- f.innerHTML=`<div class="uacts"><button type="button" class="uadd" id="uAdd">+ Nytt kort</button><button type="button" id="uPick" aria-pressed="${uFilter==="pick"}" title="Velg flere behov samtidig">☑ Velg flere</button>${nh?`<button type="button" id="uDelBtn" aria-pressed="${uDelView}" title="Se og gjenopprett kort du har slettet">Slettede ${nh}</button>`:""}</div>`+`<div class="ufrow"><button type="button" class="ustar" id="uonlystar" aria-pressed="${uOnlyStar}" title="Vis bare stjernemerkede" aria-label="Vis bare stjernemerkede kort">${uOnlyStar?"★":"☆"}</button><button type="button" data-uf="all" aria-pressed="${uFilter==="all"}">Alle <span style="opacity:.6">${UFC[uMode].length}</span></button></div><div class="ufrow2"><button type="button" id="uonlyagain" aria-pressed="${uOnlyAgain}" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span>${UFC[uMode].filter(c=>!known.has(uid(c))).length}</span></button><button type="button" id="uonlyknown" aria-pressed="${uOnlyKnown}" title="Vis bare kort jeg kan">Kan <span>${UFC[uMode].filter(c=>known.has(uid(c))).length}</span></button></div>`+keys.map(k=>`<button type="button" data-uf="${k}" aria-pressed="${uFilter==="pick"?uPicked.has(k):uFilter===k}">${dot(k)}${NEEDS[k][0]}</button>`).join("");
+ f.innerHTML=`<div class="uacts"><button type="button" class="uadd" id="uAdd" aria-label="Nytt kort">+<span class="addtxt"> Nytt kort</span></button><button type="button" id="uPick" aria-pressed="${uFilter==="pick"}" title="Velg flere behov samtidig">☑ Velg flere</button>${nh?`<button type="button" id="uDelBtn" aria-pressed="${uDelView}" title="Se og gjenopprett kort du har slettet">Slettede ${nh}</button>`:""}</div>`+`<div class="ufrow"><button type="button" class="ustar" id="uonlystar" aria-pressed="${uOnlyStar}" title="Vis bare stjernemerkede" aria-label="Vis bare stjernemerkede kort">${uOnlyStar?"★":"☆"}</button><button type="button" data-uf="all" aria-pressed="${uFilter==="all"}">Alle <span style="opacity:.6">${UFC[uMode].length}</span></button></div><div class="ufrow2"><button type="button" id="uonlyagain" aria-pressed="${uOnlyAgain}" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span>${UFC[uMode].filter(c=>!known.has(uid(c))).length}</span></button><button type="button" id="uonlyknown" aria-pressed="${uOnlyKnown}" title="Vis bare kort jeg kan">Kan <span>${UFC[uMode].filter(c=>known.has(uid(c))).length}</span></button></div>`+keys.map(k=>`<button type="button" data-uf="${k}" aria-pressed="${uFilter==="pick"?uPicked.has(k):uFilter===k}">${dot(k)}${NEEDS[k][0]}</button>`).join("");
  document.getElementById("uAdd").onclick=()=>uOpen(null);
  document.getElementById("uPick").onclick=()=>{uFilter=uFilter==="pick"?"all":"pick";S.set("u-filter",uFilter);uDelView=false;uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()};
  const db=document.getElementById("uDelBtn");if(db)db.onclick=()=>{uDelView=!uDelView;renderUFilter();renderUCard()};
@@ -3225,5 +3236,33 @@ document.getElementById("delX").onclick=()=>document.getElementById("delDlg").cl
 .qzmf{align-items:center}.qzmh{font-size:13px;color:var(--muted);padding-left:6px}
 
 #mineDlg .minecat{display:block;width:100%;margin-top:4px;font:inherit;font-size:16px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
+
+/* ---- Mobil: mindre rotete ---- */
+.fcsel,.casesel{display:none}
+@media (max-width:720px){
+ /* Flashcards: kategoriene i én nedtrekksliste */
+ .fc-top>.chip[data-d],.fc-top>.bsel,.fc-top>.bchip{display:none!important}
+ .fc-top{gap:6px}
+ .fc-top .minerow{flex-wrap:nowrap;gap:6px;padding-bottom:8px}
+ .fc-top .chip:not(.starchip){font-size:13.5px;padding:5px 11px}
+ .fc-top .addchip{padding:5px 12px;font-size:16px;line-height:1}
+ .fc-top .addchip .addtxt{display:none}
+ .fcsel{display:flex;align-items:center;position:relative;flex:0 0 100%;min-height:42px;padding:8px 40px 8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 16px center;color:var(--ink);font-size:15px;cursor:pointer}
+ .fcsel select,.casesel select{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;cursor:pointer;border:0}
+ /* Utdypende kort: mindre bryter */
+ .seg{padding:4px}.seg button{font-size:15px;padding:8px 16px}
+ .uacts{gap:6px;margin-bottom:4px}
+ .uacts button{font-size:13.5px;padding:5px 11px;min-height:0}
+ .uacts .uadd{font-size:16px;padding:5px 12px;line-height:1.1}
+ .uacts .addtxt{display:none}
+ .u-filter .ufrow2 button{font-size:13.5px;padding:5px 10px}
+ .u-nav #uedit{order:7}
+}
+@media (max-width:860px){
+ /* Caser: nedtrekksliste i stedet for alle caseknappene */
+ #caselist,.sidebar .sarrow{display:none!important}
+ .casesel{display:flex;align-items:center;gap:10px;position:relative;width:100%;min-height:46px;padding:8px 40px 8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 16px center;color:var(--ink);font-size:16px;font-weight:700;cursor:pointer}
+ .casesel .cselk{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400}
+}
 </style>
 </body></html>
