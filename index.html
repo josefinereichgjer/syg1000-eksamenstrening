@@ -2720,7 +2720,7 @@ const QUIZ=[["SYG1000", "Hva er riktig rekkefølge i sykepleieprosessen?", ["Dat
    return `<button type="button" class="qz-opt${cls}" data-k="${k}" aria-pressed="${sel.has(k)}"${dis}><span class="bx">${mark}</span><span>${esc(t)}</span></button>`}).join("");
   const ok=done&&q.c.length===sel.size&&q.c.every(k=>sel.has(k));
   st.innerHTML=`<div class="qz-prog"><span>Spørsmål ${i+1} av ${list.length}</span><span>${right} riktig</span></div><div class="qz-bar"><i style="width:${i/list.length*100}%"></i></div>
-  <div class="qz-card${multi?" multi":""}"><div class="qz-tag">${q.t}</div><div class="qz-q">${esc(q.q)}</div>${multi?`<p class="qz-hint">Flere svar er riktige. Velg alle du mener stemmer.</p>`:""}<div class="qz-opts">${opts}</div>
+  <div class="qz-card${multi?" multi":""}"><div class="qz-tag">${q.t}</div><div class="qz-q">${esc(q.q)}</div>${multi?`<p class="qz-hint">Flere svar er riktige${q.t==="SYG1000"?"":" ("+q.c.length+")"}. Velg alle du mener stemmer.</p>`:""}<div class="qz-opts">${opts}</div>
   ${done?`<div class="qz-fb ${ok?"ok":"bad"}">${ok?"Riktig!":"Ikke helt. Riktig svar er markert med grønt."}</div>`:""}
   <div class="qz-act">${!done&&multi?`<button class="btn primary" id="qzchk"${sel.size?"":" disabled"}>Sjekk svar</button>`:""}</div><div class="qz-nav"><button class="btn qz-arr" id="qzprev" aria-label="Forrige spørsmål"${i?"":" disabled"}>←</button><button class="btn qz-arr${done?" primary":""}" id="qznext" aria-label="${i+1<list.length?"Neste spørsmål":"Se resultat"}">→</button></div></div>`;
   st.querySelectorAll(".qz-opt").forEach(b=>b.onclick=()=>{if(done)return;const k=+b.dataset.k;
