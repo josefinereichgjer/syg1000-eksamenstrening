@@ -280,15 +280,15 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 #acctDlg label{display:block;margin-top:12px;font-size:14px;font-weight:700}
 #acctDlg input{display:block;width:100%;margin-top:4px;font:inherit;font-size:16px;font-weight:400;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
 #acctDlg .hint{margin:0}
-#acctDlg,#mineDlg{border:0;border-radius:16px;padding:22px 24px;width:min(460px,calc(100vw - 32px));background:var(--paper);color:var(--ink);box-shadow:0 18px 48px rgba(40,30,80,.28)}
+#acctDlg,#mineDlg,#delDlg{border:0;border-radius:16px;padding:22px 24px;width:min(460px,calc(100vw - 32px));background:var(--paper);color:var(--ink);box-shadow:0 18px 48px rgba(40,30,80,.28)}
 #mineDlg{width:min(560px,calc(100vw - 32px))}
-#mineDlg::backdrop{background:rgba(20,20,40,.4)}
-#mineDlg h3{margin:0 0 6px;font-size:22px}
+#mineDlg::backdrop,#delDlg::backdrop{background:rgba(20,20,40,.4)}
+#mineDlg h3,#delDlg h3{margin:0 0 6px;font-size:22px}
 #mineDlg label{display:block;margin-top:12px;font-size:14px;font-weight:700}
 #mineDlg textarea{display:block;margin-top:4px;font-weight:400;min-height:70px}
 #mineDlg #mineA{min-height:150px}
-#mineDlg .hint{margin:4px 0 0}
-#mineDlg .row .sp,#acctDlg .row .sp{flex:1}
+#mineDlg .hint,#delDlg .hint{margin:4px 0 0}
+#mineDlg .row .sp,#delDlg .row .sp,#acctDlg .row .sp{flex:1}
 .atabs{display:flex;gap:4px;background:var(--field);border-radius:999px;padding:4px;margin-bottom:14px}
 .atab{flex:1;border:0;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:700;padding:8px 10px;border-radius:999px;cursor:pointer}
 .atab[aria-pressed="true"]{background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.12)}
@@ -2308,7 +2308,7 @@ function renderDecks(){
   const inB=BEHOV.includes(deck);
   const bsel=`<span class="chip bsel" aria-pressed="${inB}"><span class="blab">Grunnleggende behov</span><select id="bsel" aria-label="Grunnleggende behov: velg kategori"><option value="" ${inB?"":"selected"} disabled hidden>Grunnleggende behov</option>${BEHOV.map(d=>`<option value="${d}" ${d===deck?"selected":""}>${d===BEHOV[0]?"Grunnleggende behov (generelt)":d} (${count(d)})</option>`).join("")}</select></span>`;
   const chipB=(d,extra)=>`<button class="chip${extra||""}" aria-pressed="${d===deck}" data-d="${d}">${d} <span style="opacity:.6">${count(d)}</span></button>`;
-  el.innerHTML=`<div class="minerow">${chipB(MINE," minechip")}<button class="chip addchip" id="mineAdd" title="Lag ditt eget flashcard">+ Nytt kort</button><button class="chip pickchip" id="pickBtn" aria-pressed="${deck===PICK}" aria-expanded="${pickOpen}" title="Velg hvilke temaer du vil øve på">☑ ${picked.size?"Valgte temaer <span style=\"opacity:.6\">"+count(PICK)+"</span>":"Velg temaer"}</button></div>`+`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+chipB("Alle")+bsel+[...cats.filter(d=>d!==LAST&&d!=="Eksamen"&&d!==MINE&&!BEHOV.includes(d))].map(d=>chipB(d)).join("")+
+  el.innerHTML=`<div class="minerow">${chipB(MINE," minechip")}<button class="chip addchip" id="mineAdd" title="Lag ditt eget flashcard">+ Nytt kort</button>${HIDDEN.size?`<button class="chip delchip" id="delBtn" title="Se og gjenopprett kort du har slettet">Slettede ${HIDDEN.size}</button>`:""}<button class="chip pickchip" id="pickBtn" aria-pressed="${deck===PICK}" aria-expanded="${pickOpen}" title="Velg hvilke temaer du vil øve på">☑ ${picked.size?"Valgte temaer <span style=\"opacity:.6\">"+count(PICK)+"</span>":"Velg temaer"}</button></div>`+`<button class="chip starchip" aria-pressed="${onlyStar}" id="onlyStar" title="Vis bare stjernemerkede (${CARDS.filter(c=>stars.has(cid(c))).length})" aria-label="Vis bare stjernemerkede kort">${onlyStar?"★":"☆"}</button>`+`<button class="chip" aria-pressed="${onlyAgain}" id="onlyAgain" title="Vis bare kort jeg ikke kan ennå">Ikke kan <span style="opacity:.6">${CARDS.filter(c=>!known.has(cid(c))).length}</span></button><button class="chip" aria-pressed="${onlyKnown}" id="onlyKnown" title="Vis bare kort jeg kan">Kan <span style="opacity:.6">${CARDS.filter(c=>known.has(cid(c))).length}</span></button>`+chipB("Alle")+bsel+[...cats.filter(d=>d!==LAST&&d!=="Eksamen"&&d!==MINE&&!BEHOV.includes(d))].map(d=>chipB(d)).join("")+
     (cats.includes(LAST)?chipB(LAST," svikt"):"");
   const bs=document.getElementById("bsel");if(bs)bs.onchange=()=>{deck=bs.value;buildOrder(false);renderDecks();renderCard()};
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{deck=b.dataset.d;buildOrder(false);renderDecks();renderCard()});
@@ -2316,6 +2316,7 @@ function renderDecks(){
   document.getElementById("onlyAgain").onclick=()=>{onlyAgain=!onlyAgain;if(onlyAgain)onlyKnown=false;buildOrder(false);renderDecks();renderCard()};
   document.getElementById("onlyStar").onclick=()=>{onlyStar=!onlyStar;buildOrder(false);renderDecks();renderCard()};
   document.getElementById("mineAdd").onclick=()=>mineOpen(null);
+  const db=document.getElementById("delBtn");if(db)db.onclick=()=>openDeleted();
   // Velg temaer: huk av de temaene du vil ha flashcards fra
   const all=cats.filter(d=>d!=="Eksamen");const other=all.filter(d=>!BEHOV.includes(d));
   const box=d=>`<label class="pk"><input type="checkbox" value="${escH(d)}" ${picked.has(d)?"checked":""}><span>${d===BEHOV[0]?"Generelt":d}</span><em>${count(d)}</em></label>`;
@@ -2398,7 +2399,7 @@ document.addEventListener("keydown",e=>{if(document.getElementById("v-kort").hid
 const MINE="Mine kort";
 const escH=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 // h:1 = formatert tekst (fet/markering). o = id til et innebygd kort som er redigert (ikke et eget kort).
-const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>{const r={id:m.id.slice(0,40),q:m.h?richClean(m.q).slice(0,2000):m.q.slice(0,300),a:m.h?richClean(m.a).slice(0,8000):m.a.slice(0,1500),t:+m.t||0};if(m.h)r.h=1;if(typeof m.o==="string")r.o=m.o.slice(0,600);return r}).slice(0,500);
+const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>{const r={id:m.id.slice(0,40),q:m.h?richClean(m.q).slice(0,2000):m.q.slice(0,300),a:m.h?richClean(m.a).slice(0,8000):m.a.slice(0,1500),t:+m.t||0};if(m.h)r.h=1;if(m.x)r.x=1;if(typeof m.o==="string")r.o=m.o.slice(0,600);return r}).slice(0,500);
 // Formatert tekst: bare fet skrift, fargemarkering, avsnitt og lister slipper gjennom.
 const HL={g:"#D7ECCB",b:"#D6E4F4",r:"#F6DCE4",l:"#E6DDF3",y:"#F5EBB5"};
 const HLRGB={};Object.entries(HL).forEach(([k,v])=>{const n=parseInt(v.slice(1),16);HLRGB[`rgb(${n>>16}, ${n>>8&255}, ${n&255})`]=k});
@@ -2430,10 +2431,14 @@ const richToEditor=h=>String(h).replace(/<mark class="hl-([gbrly])">/g,(m,k)=>`<
 const richIsEmpty=h=>!String(h).replace(/<[^>]*>/g,"").replace(/&nbsp;|\s/g,"").length;
 let EDITS=new Map();
 let mine=cleanMine(S.get("syg-custom",[]));
+// Innebygde kort tas vare på her, så slettede kort kan hentes tilbake.
+let BASE=null,HIDDEN=new Map();
 function mineSync(){
-  for(let i=CARDS.length-1;i>=0;i--)if(CARDS[i][3]&&CARDS[i][3].own)CARDS.splice(i,1);
-  EDITS=new Map();
-  mine.forEach(m=>{if(m.o){EDITS.set(m.o,m);return}
+  if(!BASE)BASE=CARDS.filter(c=>!(c[3]&&c[3].own));
+  EDITS=new Map();HIDDEN=new Map();
+  mine.forEach(m=>{if(m.o&&m.x)HIDDEN.set(m.o,m)});
+  CARDS.length=0;BASE.forEach(c=>{if(!HIDDEN.has(cid(c)))CARDS.push(c)});
+  mine.forEach(m=>{if(m.x)return;if(m.o){EDITS.set(m.o,m);return}
     CARDS.push(m.h?[MINE,m.q,m.a,{own:m.id,html:1}]:[MINE,escH(m.q),escH(m.a).replace(/\n+/g,"<br>"),{own:m.id}])});
   if(window.searchReset)searchReset();
 }
@@ -2455,7 +2460,7 @@ function editOpen(c){
   document.getElementById("mineH").textContent="Rediger kortet";
   document.getElementById("mineQ").innerHTML=richToEditor(ed?ed.q:richClean(c[1]));
   document.getElementById("mineA").innerHTML=richToEditor(ed?ed.a:richClean(fmtBack(c[2])));
-  document.getElementById("mineDel").hidden=true;document.getElementById("mineReset").hidden=!ed;document.getElementById("mineErr").hidden=true;
+  document.getElementById("mineDel").hidden=false;document.getElementById("mineReset").hidden=!ed;document.getElementById("mineErr").hidden=true;
   document.getElementById("mineNote").textContent=(Acct.uid?"Endringene lagres på brukeren «"+Acct.name+"».":"Du er ikke logget inn, så endringene lagres bare i denne nettleseren.")+" Originalen kan hentes tilbake med «Tilbakestill».";
   dlg.showModal();document.getElementById("mineA").focus();
 }
@@ -2476,7 +2481,10 @@ function editOpen(c){
     mineChanged();dlg.close();
     deck=MINE;onlyAgain=false;onlyKnown=false;onlyStar=false;buildOrder(false);
     const k=order.findIndex(c=>c[3]&&c[3].own===id);pos=k<0?0:k;renderDecks();renderCard()};
-  document.getElementById("mineDel").onclick=()=>{if(!mineEditing)return;if(!confirmDel())return;
+  document.getElementById("mineDel").onclick=()=>{if(!mineEditing&&!editBase)return;if(!confirmDel())return;
+    if(editBase){const o=cid(editBase);mine=mine.filter(x=>x.o!==o);
+      mine.push({id:"x"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),o,q:"",a:"",x:1,t:Date.now()});
+      mineChanged();dlg.close();editBase=null;buildOrder(false);renderDecks();renderCard();return}
     const id=mineEditing;mine=mine.filter(x=>x.id!==id);known.delete("mine:"+id);stars.delete("mine:"+id);S.set("syg-known",[...known]);S.set("syg-stars",[...stars]);
     mineChanged();dlg.close();buildOrder(false);renderDecks();renderCard()};
   // Bekreft sletting i knappen i stedet for en nettleserdialog
@@ -2983,5 +2991,31 @@ mark[class^="hl-"],i[class^="hl-"]{color:inherit;border-radius:4px;padding:0 .12
 .pickpanel .pkb .btn[disabled]{opacity:.5;cursor:default}
 .pickpanel{box-sizing:border-box;min-width:0;max-width:100%}.pickpanel .pk{min-width:0}.pickpanel .pk span{min-width:0;overflow-wrap:anywhere}
 @media (max-width:720px){.pickpanel{padding:12px}.pickpanel .pkl{grid-template-columns:repeat(2,minmax(0,1fr))}.pickpanel .pk em{font-size:12px}.pickpanel .pk{padding:8px 10px;font-size:14px;gap:8px}}
+</style>
+<dialog id="delDlg" aria-labelledby="delH"><div class="delwrap"><h3 id="delH">Slettede kort</h3><p class="hint">Kortene er bare skjult for deg. Hent dem tilbake når du vil.</p><div id="delList"></div>
+<div class="row"><button class="btn" id="delAll" type="button">Gjenopprett alle</button><span class="sp"></span><button class="btn primary" id="delX" type="button">Lukk</button></div></div></dialog>
+<script>
+function openDeleted(){const d=document.getElementById("delDlg");drawDeleted();if(!d.open)d.showModal()}
+function drawDeleted(){
+  const L=document.getElementById("delList"),strip=h=>String(h).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+  const rows=BASE.filter(c=>HIDDEN.has(cid(c)));
+  L.innerHTML=rows.length?rows.map((c,i)=>`<div class="delrow"><div><div class="delcat">${c[0]}</div><div class="delq">${escH(strip(c[1]))}</div></div><button class="btn" data-i="${i}" type="button">Gjenopprett</button></div>`).join(""):`<p class="hint">Ingen slettede kort.</p>`;
+  L.querySelectorAll("button[data-i]").forEach(b=>b.onclick=()=>restoreCards([cid(rows[+b.dataset.i])]));
+  document.getElementById("delAll").hidden=!rows.length;
+}
+function restoreCards(ids){const set=new Set(ids);mine=mine.filter(m=>!(m.x&&set.has(m.o)));mineChanged();buildOrder(false);renderDecks();renderCard();drawDeleted();if(!HIDDEN.size)document.getElementById("delDlg").close()}
+document.getElementById("delAll").onclick=()=>restoreCards([...HIDDEN.keys()]);
+document.getElementById("delX").onclick=()=>document.getElementById("delDlg").close();
+</script>
+<style>
+.fc-top .chip.delchip{border-color:var(--line);color:var(--muted)}
+#delDlg{width:min(560px,calc(100vw - 32px))}
+#delDlg .row{display:flex;gap:8px;align-items:center}
+#delDlg .delwrap{display:flex;flex-direction:column;max-height:80vh}
+#delList{overflow:auto;margin:8px 0 14px;display:flex;flex-direction:column;gap:8px}
+.delrow{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.delrow .delcat{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.delrow .delq{font-size:15px;line-height:1.4}
+.delrow .btn{flex:none}
 </style>
 </body></html>
