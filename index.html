@@ -848,11 +848,20 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
 <div id="acctOutView" hidden><h3>Innlogget som <span id="acctWho"></span></h3><p class="hint">Stjerner, «kan»-status og egne kort lagres på brukeren din og følger deg til andre enheter.</p><div class="row"><button class="btn" id="acctOut" type="button">Logg ut</button><span class="sp"></span><button class="btn" id="acctX2" type="button">Lukk</button></div></div>
 </form></dialog>
 <dialog id="mineDlg"><form id="mineForm" novalidate><h3 id="mineH">Nytt kort</h3>
-<label>Spørsmål (forsiden)<textarea id="mineQ" maxlength="300" required></textarea></label>
-<label>Svar (baksiden)<textarea id="mineA" maxlength="1500" required></textarea></label>
+<div class="rtbar" role="toolbar" aria-label="Formatering">
+<button type="button" class="rtb" data-cmd="bold" title="Fet skrift (Ctrl+B)" aria-label="Fet skrift"><b>F</b></button><span class="rtsep"></span>
+<button type="button" class="rtb sw" data-hl="g" title="Grønn markering" aria-label="Grønn markering"><i class="hl-g"></i></button>
+<button type="button" class="rtb sw" data-hl="b" title="Blå markering" aria-label="Blå markering"><i class="hl-b"></i></button>
+<button type="button" class="rtb sw" data-hl="r" title="Rosa markering" aria-label="Rosa markering"><i class="hl-r"></i></button>
+<button type="button" class="rtb sw" data-hl="l" title="Lilla markering" aria-label="Lilla markering"><i class="hl-l"></i></button>
+<button type="button" class="rtb sw" data-hl="y" title="Gul markering" aria-label="Gul markering"><i class="hl-y"></i></button>
+<button type="button" class="rtb" data-hl="x" title="Fjern markering" aria-label="Fjern markering">Fjern</button></div>
+<label id="mineQL" for="mineQ">Spørsmål (forsiden)</label><div class="rte" id="mineQ" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="mineQL"></div>
+<label id="mineAL" for="mineA">Svar (baksiden)</label><div class="rte" id="mineA" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="mineAL"></div>
+<p class="hint">Marker tekst, og velg fet skrift eller en farge.</p>
 <p class="hint" id="mineNote"></p>
 <p id="mineErr" class="hint aerr" role="alert" hidden></p>
-<div class="row"><button class="btn primary" type="submit" id="mineSave">Lagre kortet</button><button class="btn" id="mineX" type="button">Avbryt</button><span class="sp"></span><button class="btn" id="mineDel" type="button" hidden>Slett</button></div>
+<div class="row"><button class="btn primary" type="submit" id="mineSave">Lagre kortet</button><button class="btn" id="mineX" type="button">Avbryt</button><span class="sp"></span><button class="btn" id="mineReset" type="button" hidden>Tilbakestill</button><button class="btn" id="mineDel" type="button" hidden>Slett</button></div>
 </form></dialog>
 
 <script>
@@ -2332,13 +2341,14 @@ function renderCard(){
   if(!order.length){st.innerHTML=`<div class="empty"><h3>Ingen kort igjen her</h3><p>Du har markert alle kortene i denne bunken som «kan». Velg en annen bunke, eller nullstill.</p><button class="btn" id="reset">Nullstill bunken</button></div>`;
     document.getElementById("reset").onclick=()=>{inDeck.forEach(c=>known.delete(cid(c)));S.set("syg-known",[...known]);savePrefs();buildOrder(false);renderCard()};return}
   if(pos>=order.length)pos=0;
-  const c=order[pos];
+  const c=order[pos];const ed=EDITS.get(cid(c));
+  const fq=ed?ed.q:c[1],fa=ed?`<div class="rich">${ed.a}</div>`:(c[3]&&c[3].html?`<div class="rich">${c[2]}</div>`:fmtBack(c[2]));
   st.innerHTML=`<div class="fc-progress"><span>Kort ${pos+1} av ${order.length}${onlyStar?" · ★ bare stjernemerkede":""}</span><span>${k} av ${inDeck.length} kan</span></div>
   <div class="bar"><i style="width:${inDeck.length?Math.round(k/inDeck.length*100):0}%"></i></div>
   <div class="card" id="card" tabindex="0" role="button" aria-label="Snu kortet"><div class="card-inner">
-    <div class="face front"><span class="cat">${c[0]}${stars.has(cid(c))?`<span class="stbadge" title="Stjernemerket">★</span>`:""}</span><div class="front-q">${c[1]}</div><span class="tap">Trykk eller mellomrom for å snu</span></div>
-    <div class="face back"><span class="cat">${c[0]}</span><div class="back-a">${fmtBack(c[2])}</div></div></div></div>
-  <div class="fc-actions"><button class="btn" id="prev">← Forrige</button><button class="btn again" id="again">Øv mer</button><button class="btn star" id="star" aria-pressed="${stars.has(cid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(cid(c))?"★":"☆"}</button><button class="btn know chk" id="know" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="next">Neste →</button><button class="btn" id="shuf">Stokk</button>${c[3]&&c[3].own?`<button class="btn" id="mineEdit" title="Rediger eller slett kortet">✎ Rediger</button>`:""}</div>`;
+    <div class="face front"><span class="cat">${c[0]}${ed?`<span class="edbadge">✎ redigert</span>`:""}${stars.has(cid(c))?`<span class="stbadge" title="Stjernemerket">★</span>`:""}</span><div class="front-q rich">${fq}</div><span class="tap">Trykk eller mellomrom for å snu</span></div>
+    <div class="face back"><span class="cat">${c[0]}</span><div class="back-a">${fa}</div></div></div></div>
+  <div class="fc-actions"><button class="btn" id="prev">← Forrige</button><button class="btn again" id="again">Øv mer</button><button class="btn star" id="star" aria-pressed="${stars.has(cid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(cid(c))?"★":"☆"}</button><button class="btn know chk" id="know" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="next">Neste →</button><button class="btn" id="shuf">Stokk</button><button class="btn" id="mineEdit" title="Rediger kortet: endre tekst, fet skrift og markering">✎ Rediger</button></div>`;
   const card=document.getElementById("card");
   const hOf=sel=>{const x=card.querySelector(sel);x.style.position="relative";const h=Math.max(300,x.scrollHeight);x.style.position="";return h};
   const frontH=hOf(".face.front"),backH=hOf(".face.back");
@@ -2349,7 +2359,7 @@ function renderCard(){
   document.getElementById("prev").onclick=()=>{pos=(pos-1+order.length)%order.length;renderCard()};
   document.getElementById("next").onclick=()=>{pos=(pos+1)%order.length;renderCard()};
   document.getElementById("shuf").onclick=()=>{buildOrder(true);renderCard()};
-  const me=document.getElementById("mineEdit");if(me)me.onclick=()=>mineOpen(c[3].own);
+  const me=document.getElementById("mineEdit");if(me)me.onclick=e=>{e.stopPropagation();c[3]&&c[3].own?mineOpen(c[3].own):editOpen(c)};
   document.getElementById("know").onclick=()=>{known.add(cid(c));S.set("syg-known",[...known]);savePrefs();if(onlyAgain){order.splice(pos,1)}else pos++;renderDecks();renderCard()};
   document.getElementById("star").onclick=()=>{const id=cid(c),was=stars.has(id);was?stars.delete(id):stars.add(id);S.set("syg-stars",[...stars]);savePrefs();if(onlyStar&&was){order.splice(pos,1);if(pos>=order.length)pos=0}renderDecks();renderCard()};
   document.getElementById("again").onclick=()=>{known.delete(cid(c));S.set("syg-known",[...known]);savePrefs();if(onlyKnown){order.splice(pos,1)}else pos++;renderDecks();renderCard()};
@@ -2366,33 +2376,80 @@ document.addEventListener("keydown",e=>{if(document.getElementById("v-kort").hid
 // Lagres i nettleseren, og på brukeren når man er logget inn.
 const MINE="Mine kort";
 const escH=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>({id:m.id.slice(0,40),q:m.q.slice(0,300),a:m.a.slice(0,1500),t:+m.t||0})).slice(0,500);
+// h:1 = formatert tekst (fet/markering). o = id til et innebygd kort som er redigert (ikke et eget kort).
+const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>{const r={id:m.id.slice(0,40),q:m.h?richClean(m.q).slice(0,2000):m.q.slice(0,300),a:m.h?richClean(m.a).slice(0,8000):m.a.slice(0,1500),t:+m.t||0};if(m.h)r.h=1;if(typeof m.o==="string")r.o=m.o.slice(0,600);return r}).slice(0,500);
+// Formatert tekst: bare fet skrift, fargemarkering, avsnitt og lister slipper gjennom.
+const HL={g:"#D7ECCB",b:"#D6E4F4",r:"#F6DCE4",l:"#E6DDF3",y:"#F5EBB5"};
+const HLRGB={};Object.entries(HL).forEach(([k,v])=>{const n=parseInt(v.slice(1),16);HLRGB[`rgb(${n>>16}, ${n>>8&255}, ${n&255})`]=k});
+function richClean(html){
+  const t=document.createElement("template");t.innerHTML=String(html||"");
+  const out=[];
+  const walk=(n,bold,hl)=>{
+    if(n.nodeType===3){let x=escH(n.nodeValue);if(!x)return;if(bold)x="<b>"+x+"</b>";if(hl)x=`<mark class="hl-${hl}">${x}</mark>`;out.push(x);return}
+    if(n.nodeType!==1)return;
+    const tag=n.tagName.toLowerCase();
+    if(tag==="br"){out.push("<br>");return}
+    if(/^(script|style|template|iframe|object|img|svg)$/.test(tag))return;
+    let b=bold,h=hl;
+    if(tag==="b"||tag==="strong")b=true;
+    const fw=n.style&&n.style.fontWeight;if(fw==="bold"||+fw>=600)b=true;if(fw==="normal"||(+fw&&+fw<600))b=false;
+    const cm=(n.className&&typeof n.className==="string")?n.className.match(/(?:^|\s)hl-([gbrly])(?:\s|$)/):null;if(cm)h=cm[1];
+    const bg=n.style&&n.style.backgroundColor;if(bg){h=HLRGB[bg.replace(/\s+/g,"").replace(/,/g,", ")]||(/transparent|rgba\(0, 0, 0, 0\)/.test(bg)?null:h)}
+    const blk=/^(p|div|li|h[1-6])$/.test(tag);
+    if(tag==="ul"||tag==="ol"){out.push(`<${tag}${n.classList.contains("nl")?' class="nl"':""}>`);n.childNodes.forEach(c=>walk(c,b,h));out.push(`</${tag}>`);return}
+    if(blk){const tg=tag==="li"?"li":"p";out.push(`<${tg}>`);n.childNodes.forEach(c=>walk(c,b,h));out.push(`</${tg}>`);return}
+    n.childNodes.forEach(c=>walk(c,b,h));
+  };
+  t.content.childNodes.forEach(c=>walk(c,false,null));
+  return out.join("").replace(/<\/b><b>/g,"").replace(/<p><\/p>/g,"<p><br></p>").trim();
+}
+const richToEditor=h=>String(h).replace(/<mark class="hl-([gbrly])">/g,(m,k)=>`<span style="background-color:${HL[k]}">`).replace(/<\/mark>/g,"</span>");
+const richIsEmpty=h=>!String(h).replace(/<[^>]*>/g,"").replace(/&nbsp;|\s/g,"").length;
+let EDITS=new Map();
 let mine=cleanMine(S.get("syg-custom",[]));
 function mineSync(){
   for(let i=CARDS.length-1;i>=0;i--)if(CARDS[i][3]&&CARDS[i][3].own)CARDS.splice(i,1);
-  mine.forEach(m=>CARDS.push([MINE,escH(m.q),escH(m.a).replace(/\n+/g,"<br>"),{own:m.id}]));
+  EDITS=new Map();
+  mine.forEach(m=>{if(m.o){EDITS.set(m.o,m);return}
+    CARDS.push(m.h?[MINE,m.q,m.a,{own:m.id,html:1}]:[MINE,escH(m.q),escH(m.a).replace(/\n+/g,"<br>"),{own:m.id}])});
   if(window.searchReset)searchReset();
 }
 function mineChanged(){S.set("syg-custom",mine);mineSync();if(Acct.uid)acctSave();else setSync("local","Lagret i denne nettleseren")}
 mineSync();
-let mineEditing=null;
+let mineEditing=null,editBase=null;
+const plainToEditor=v=>escH(v).replace(/\n/g,"<br>");
 function mineOpen(id){
-  const dlg=document.getElementById("mineDlg"),m=id?mine.find(x=>x.id===id):null;mineEditing=m?m.id:null;
+  const dlg=document.getElementById("mineDlg"),m=id?mine.find(x=>x.id===id):null;mineEditing=m?m.id:null;editBase=null;
   document.getElementById("mineH").textContent=m?"Rediger kortet":"Nytt kort";
-  document.getElementById("mineQ").value=m?m.q:"";document.getElementById("mineA").value=m?m.a:"";
-  document.getElementById("mineDel").hidden=!m;document.getElementById("mineErr").hidden=true;
+  document.getElementById("mineQ").innerHTML=m?(m.h?richToEditor(m.q):plainToEditor(m.q)):"";document.getElementById("mineA").innerHTML=m?(m.h?richToEditor(m.a):plainToEditor(m.a)):"";
+  document.getElementById("mineDel").hidden=!m;document.getElementById("mineReset").hidden=true;document.getElementById("mineErr").hidden=true;
   document.getElementById("mineNote").textContent=Acct.uid?"Kortet lagres på brukeren «"+Acct.name+"».":"Du er ikke logget inn, så kortet lagres bare i denne nettleseren.";
   dlg.showModal();document.getElementById("mineQ").focus();
+}
+// Rediger et innebygd kort: endringen lagres som din egen versjon, originalen ligger urørt.
+function editOpen(c){
+  const dlg=document.getElementById("mineDlg"),id=cid(c),ed=EDITS.get(id);mineEditing=null;editBase=c;
+  document.getElementById("mineH").textContent="Rediger kortet";
+  document.getElementById("mineQ").innerHTML=richToEditor(ed?ed.q:richClean(c[1]));
+  document.getElementById("mineA").innerHTML=richToEditor(ed?ed.a:richClean(fmtBack(c[2])));
+  document.getElementById("mineDel").hidden=true;document.getElementById("mineReset").hidden=!ed;document.getElementById("mineErr").hidden=true;
+  document.getElementById("mineNote").textContent=(Acct.uid?"Endringene lagres på brukeren «"+Acct.name+"».":"Du er ikke logget inn, så endringene lagres bare i denne nettleseren.")+" Originalen kan hentes tilbake med «Tilbakestill».";
+  dlg.showModal();document.getElementById("mineA").focus();
 }
 (function(){const dlg=document.getElementById("mineDlg");if(!dlg)return;
   const err=t=>{const e=document.getElementById("mineErr");e.textContent=t;e.hidden=!t};
   document.getElementById("mineForm").onsubmit=ev=>{ev.preventDefault();
-    const q=document.getElementById("mineQ").value.trim(),a=document.getElementById("mineA").value.trim();
-    if(!q||!a){err("Skriv både spørsmål og svar.");return}
+    const q=richClean(document.getElementById("mineQ").innerHTML),a=richClean(document.getElementById("mineA").innerHTML);
+    if(richIsEmpty(q)||richIsEmpty(a)){err("Skriv både spørsmål og svar.");return}
+    if(q.length>2000||a.length>8000){err("Teksten er for lang.");return}
+    if(editBase){const o=cid(editBase),ex=mine.find(x=>x.o===o);
+      if(ex){ex.q=q;ex.a=a;ex.t=Date.now()}else{if(mine.length>=500){err("Du har nådd grensen på 500 egne og redigerte kort.");return}
+        mine.push({id:"e"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),o,q,a,h:1,t:Date.now()})}
+      mineChanged();dlg.close();renderCard();return}
     if(!mineEditing&&mine.length>=500){err("Du kan ha opptil 500 egne kort.");return}
     let id=mineEditing;
-    if(id){const m=mine.find(x=>x.id===id);m.q=q;m.a=a;m.t=Date.now()}
-    else{id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);mine.push({id,q,a,t:Date.now()})}
+    if(id){const m=mine.find(x=>x.id===id);m.q=q;m.a=a;m.h=1;m.t=Date.now()}
+    else{id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);mine.push({id,q,a,h:1,t:Date.now()})}
     mineChanged();dlg.close();
     deck=MINE;onlyAgain=false;onlyKnown=false;onlyStar=false;buildOrder(false);
     const k=order.findIndex(c=>c[3]&&c[3].own===id);pos=k<0?0:k;renderDecks();renderCard()};
@@ -2402,6 +2459,16 @@ function mineOpen(id){
   // Bekreft sletting i knappen i stedet for en nettleserdialog
   let armed=0;function confirmDel(){const b=document.getElementById("mineDel");if(Date.now()-armed<4000){armed=0;b.textContent="Slett";return true}armed=Date.now();b.textContent="Trykk igjen for å slette";setTimeout(()=>{b.textContent="Slett"},4000);return false}
   document.getElementById("mineX").onclick=()=>dlg.close();
+  document.getElementById("mineReset").onclick=()=>{if(!editBase)return;const o=cid(editBase);mine=mine.filter(x=>x.o!==o);mineChanged();dlg.close();renderCard()};
+  // Verktøylinje: fet skrift og fargemarkering i feltet du sist skrev i
+  let last=document.getElementById("mineA");
+  dlg.querySelectorAll(".rte").forEach(r=>{r.addEventListener("focus",()=>{last=r});
+    r.addEventListener("paste",e=>{e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData("text/plain");document.execCommand("insertText",false,t)});
+    r.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="b"){e.preventDefault();document.execCommand("styleWithCSS",false,false);document.execCommand("bold")}})});
+  dlg.querySelectorAll(".rtb").forEach(b=>{b.addEventListener("mousedown",e=>e.preventDefault());
+    b.addEventListener("click",()=>{const sel=getSelection();if(!sel.rangeCount||!last.contains(sel.anchorNode)){last.focus();return}
+      if(b.dataset.cmd==="bold"){document.execCommand("styleWithCSS",false,false);document.execCommand("bold")}
+      else{document.execCommand("styleWithCSS",false,true);document.execCommand("hiliteColor",false,b.dataset.hl==="x"?"transparent":HL[b.dataset.hl])}})});
 })();
 
 // ---- Brukere med passord (Firebase Authentication + Firestore) ----
@@ -2854,4 +2921,25 @@ const QUIZ=[["SYG1000", "Hva er riktig rekkefølge i sykepleieprosessen?", ["Dat
  if(S.get("syg-view","")==="quiz"&&!M.hidden)renderQuiz();
 })();
 </script>
+<style>
+/* Markeringsfarger: dempede pasteller som passer sidens grønn/blå palett */
+:root{--hl-g:#D7ECCB;--hl-b:#D6E4F4;--hl-r:#F6DCE4;--hl-l:#E6DDF3;--hl-y:#F5EBB5}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--hl-g:rgba(127,195,112,.30);--hl-b:rgba(138,169,218,.32);--hl-r:rgba(226,140,170,.30);--hl-l:rgba(170,145,220,.32);--hl-y:rgba(214,196,90,.30)}}
+:root[data-theme="dark"]{--hl-g:rgba(127,195,112,.30);--hl-b:rgba(138,169,218,.32);--hl-r:rgba(226,140,170,.30);--hl-l:rgba(170,145,220,.32);--hl-y:rgba(214,196,90,.30)}
+mark[class^="hl-"],i[class^="hl-"]{color:inherit;border-radius:4px;padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.hl-g{background:var(--hl-g)}.hl-b{background:var(--hl-b)}.hl-r{background:var(--hl-r)}.hl-l{background:var(--hl-l)}.hl-y{background:var(--hl-y)}
+.rich p{margin:0 0 .6em}.rich p:last-child{margin-bottom:0}.rich b{font-weight:700}
+.rtbar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:10px 0 2px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--field)}
+.rtb{min-width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0 10px}
+.rtb:hover{border-color:var(--muted)}.rtb b{font-size:16px}
+.rtb.sw{padding:0;width:34px}.rtb[data-hl="x"]{padding:0 9px;font-size:13px}.rtb.sw i{display:block;width:20px;height:20px;border-radius:50%;padding:0;border:1px solid rgba(0,0,0,.08)}
+.rtsep{width:1px;height:22px;background:var(--line);margin:0 1px}
+#mineDlg .rte{margin-top:4px;min-height:70px;max-height:34vh;overflow:auto;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:16px;line-height:1.55;outline:none;white-space:pre-wrap;word-break:break-word}
+#mineDlg #mineA{min-height:150px}
+#mineDlg .rte:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+#mineDlg .rte p,#mineDlg .rte div{margin:0}
+#mineDlg .rte span[style*="background"]{border-radius:4px;color:inherit}
+.edbadge{margin-left:8px;font-size:11px;font-weight:600;opacity:.7;text-transform:none;letter-spacing:0}
+@media (max-width:720px){.fc-actions #mineEdit{order:7}.rtbar{gap:4px;padding:5px}.rtbar .rtb{min-width:0;min-height:0;height:32px;width:32px;padding:0}.rtbar .rtb[data-hl="x"]{width:auto;padding:0 8px}.rtbar .rtb.sw i{width:18px;height:18px}}
+</style>
 </body></html>
