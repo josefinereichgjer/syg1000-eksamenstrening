@@ -2723,6 +2723,15 @@ function backTerm(c){
 function backScen(c){return `<div><h4>Sykepleiediagnose (${c.typ==="P"?"problem":"risiko"})</h4><p class="diag">${c.diag}</p></div>
  <div><h4>Mål</h4>${Array.isArray(c.mal)?`<ul class="ml">${c.mal.map(m=>`<li>${m}</li>`).join("")}</ul>`:`<p>${c.mal}</p>`}</div>
  <div><h4>Tiltak → begrunnelse</h4><ul class="tt">${c.tiltak.map(t=>`<li><b>${t[0]}</b><span>${t[1]}</span></li>`).join("")}</ul></div>${c.andre?`<div><h4>Andre diagnoser fra forsiden</h4><ul class="ml">${c.andre.map(a=>`<li><b>${a[0]}:</b> ${a[1]}</li>`).join("")}</ul></div>`:""}`}
+// Vend fagkort med samme animasjon som flashcards
+let uFlipping=false;
+function uFlipAnim(){const el=document.getElementById("ucard");
+  if(!el||!el.animate||matchMedia("(prefers-reduced-motion:reduce)").matches){uFlip=!uFlip;renderUCard();return}
+  if(uFlipping)return;uFlipping=true;const dir=uFlip?-1:1;
+  el.animate([{transform:"perspective(1100px) rotateY(0deg) scale(1)"},{transform:`perspective(1100px) rotateY(${90*dir}deg) scale(1.04)`}],{duration:170,easing:"cubic-bezier(.55,0,.9,.45)",fill:"forwards"}).onfinish=()=>{
+    uFlip=!uFlip;renderUCard();const n=document.getElementById("ucard");
+    if(!n){uFlipping=false;return}
+    n.animate([{transform:`perspective(1100px) rotateY(${-90*dir}deg) scale(1.04)`},{transform:"perspective(1100px) rotateY(0deg) scale(1)"}],{duration:260,easing:"cubic-bezier(.2,.7,.25,1.15)"}).onfinish=()=>{uFlipping=false}}}
 function renderUCard(){const st=document.getElementById("ustage");
  if(uDelView){const H=UBASE[uMode].filter(c=>UHIDDEN.has(c._id));
    st.innerHTML=`<div class="udel"><h3>Slettede kort</h3>${H.length?`<ul>${H.map(c=>`<li><span>${uMode==="T"?c.t:c.diag}</span><button class="btn" data-restore="${c._id}">Gjenopprett</button></li>`).join("")}</ul>`:"<p>Ingen slettede kort.</p>"}<div class="row" style="margin-top:14px"><button class="btn" id="udelBack">Tilbake til kortene</button></div></div>`;
@@ -2744,7 +2753,7 @@ function renderUCard(){const st=document.getElementById("ustage");
    <div class="side"><span>${c._own?"Eget kort":ue?"✎ Redigert":""}</span>${uFlip||uMode==="T"?dots(cn):dot(cn[0])}</div>${body}</div>
   <div class="u-nav"><button class="btn" id="uprev">← Forrige</button><button class="btn again" id="uagain">Øv mer</button><button class="btn star" id="ustarcard" aria-pressed="${stars.has(uid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(uid(c))?"★":"☆"}</button><button class="btn know chk" id="uknow" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="unext">Neste →</button><button class="btn primary" id="uflip">${uFlip?"Vis forsiden":"Snu kortet"}</button><button class="btn" id="uedit" title="Rediger, bytt kategori eller slett kortet">✎ Rediger</button></div>`;
  document.getElementById("uedit").onclick=()=>uOpen(c);
- const flip=()=>{uFlip=!uFlip;renderUCard()};
+ const flip=()=>uFlipAnim();
  document.getElementById("ucard").onclick=e=>{if(e.target.closest("a"))return;flip()};
  document.getElementById("uflip").onclick=flip;
  const saveK=()=>{S.set("syg-known",[...known]);savePrefs()};
@@ -2756,7 +2765,7 @@ function renderUCard(){const st=document.getElementById("ustage");
  document.getElementById("ushuf").onclick=()=>{const n=uList().length;uOrder=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[uOrder[i],uOrder[j]]=[uOrder[j],uOrder[i]]}uIdx=0;uFlip=false;renderUCard()}}
 document.querySelectorAll("[data-umode]").forEach(b=>b.onclick=()=>{uMode=b.dataset.umode;S.set("u-mode",uMode);if(uMode==="SC"&&uFilter==="G")uFilter="all";uIdx=0;uFlip=false;uOrder=null;renderUFilter();renderUCard()});
 document.addEventListener("keydown",e=>{if(document.getElementById("v-utd").hidden||e.target.tagName==="TEXTAREA")return;
- if(e.key==="ArrowRight"){uIdx++;uFlip=false;renderUCard()}else if(e.key==="ArrowLeft"){uIdx--;uFlip=false;renderUCard()}else if(e.key===" "&&(e.target===document.body||e.target.id==="ucard")){e.preventDefault();uFlip=!uFlip;renderUCard()}});
+ if(e.key==="ArrowRight"){uIdx++;uFlip=false;renderUCard()}else if(e.key==="ArrowLeft"){uIdx--;uFlip=false;renderUCard()}else if(e.key===" "&&(e.target===document.body||e.target.id==="ucard")){e.preventDefault();uFlipAnim()}});
 // ---- Redigeringsvindu for utdypende kort (bruker samme vindu som flashcards) ----
 let uDlg=null;
 const LBL={q:"Spørsmål (forsiden)",a:"Svar (baksiden)"};
