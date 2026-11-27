@@ -2685,6 +2685,7 @@ const KEYRX=/(ca\. \d+°|\d+° sideleie|minst \d+°|hver \d+\.–\d+\. time|hver
 function tiltakLi(t,i){return `<li>${t[2]?`<p class="hw">${i+1}) ${t[2].replace(KEYRX,"<b>$1</b>")}</p>`:`<b>${t[0]}</b>`}<span>${t[1]}</span></li>`}
 function backTerm(c){
  const h=[`<div><h4>Betyr</h4><p>${c.betyr}</p></div>`];
+ return h.join("");
  if(c.k==="p"){
   h.push(`<div><h4>Behov</h4><ul class="bh">${c.behov.map(b=>`<li>${dot(b[0])}<span><b>${NEEDS[b[0]][0]}:</b> ${b[1]}</span></li>`).join("")}</ul></div>`);
   h.push(`<div><h4>Tegn</h4><ul class="tg"><li><b>Subjektivt:</b> ${c.tegn[0]}</li><li><b>Objektivt:</b> ${c.tegn[1]}</li><li><b>Målinger:</b> ${c.tegn[2]}</li></ul></div>`);
