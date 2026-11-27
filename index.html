@@ -319,6 +319,8 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 .ucard h3{font-family:var(--f-display);font-size:clamp(24px,4vw,32px);margin:40px 0 8px;line-height:1.2}
 .ucard .kind{font-size:14px;color:var(--muted)}
 .ucard.front{display:flex;flex-direction:column}
+.ucard.back{display:flex;flex-direction:column}
+.ucard.back>.ub{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:10px 6px 24px}
 .ucard .uf{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0}
 .ucard .uf h3{margin:0 0 8px;font-size:clamp(30px,6vw,40px)}
 .ucard .uf .tsub{display:block;font-size:.5em;font-weight:500;color:var(--muted);margin-top:6px;letter-spacing:0}
@@ -2730,7 +2732,7 @@ function renderUCard(){const st=document.getElementById("ustage");
    :`<p class="q">${kindTxt}</p><ul class="finds">${c.front.map(f=>`<li>${f}</li>`).join("")}</ul><div class="tap">Tenk ut diagnose (problem + relatert til), mål og tiltak (når, hvem, hva, hvordan) før du snur</div>`}
  else body=`<div class="ub">${uMode==="T"?backTerm(c):backScen(c)}</div>`;
  st.innerHTML=`<div class="u-prog"><span>${uIdx+1} / ${L.length} · ${UFC[uMode].filter(x=>known.has(uid(x))).length} kan</span><button type="button" id="ushuf">Bland</button></div>
-  <div class="ucard${!uFlip&&uMode==="T"&&!ue?" front":""}" id="ucard" tabindex="0" role="button" aria-label="Snu kortet" style="--uc:${col==="#FFFFFF"?"var(--line)":col}">
+  <div class="ucard${uMode==="T"&&!ue?(uFlip?" back":" front"):""}" id="ucard" tabindex="0" role="button" aria-label="Snu kortet" style="--uc:${col==="#FFFFFF"?"var(--line)":col}">
    <div class="side"><span>${c._own?"Eget kort":ue?"✎ Redigert":""}</span>${uFlip||uMode==="T"?dots(cn):dot(cn[0])}</div>${body}</div>
   <div class="u-nav"><button class="btn" id="uprev">← Forrige</button><button class="btn again" id="uagain">Øv mer</button><button class="btn star" id="ustarcard" aria-pressed="${stars.has(uid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(uid(c))?"★":"☆"}</button><button class="btn know chk" id="uknow" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="unext">Neste →</button><button class="btn primary" id="uflip">${uFlip?"Vis forsiden":"Snu kortet"}</button><button class="btn" id="uedit" title="Rediger, bytt kategori eller slett kortet">✎ Rediger</button></div>`;
  document.getElementById("uedit").onclick=()=>uOpen(c);
