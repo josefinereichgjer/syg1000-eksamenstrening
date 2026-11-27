@@ -2406,7 +2406,15 @@ function renderCard(){
   const setH=()=>{const h=card.classList.contains("flipped")?backH:frontH;card.querySelector(".card-inner").style.minHeight=h+"px";card.style.minHeight=h+"px"};setH();
   card.querySelectorAll("img.cimg").forEach(im=>{const re=()=>{frontH=hOf(".face.front");backH=hOf(".face.back");setH()};
     im.onload=re;if(im.complete&&im.getAttribute("src")){requestAnimationFrame(re);return}if(!im.getAttribute("src"))IMG.get(im.dataset.img).then(d=>{if(d&&im.isConnected)im.src=d})});
-  const flipCard=()=>{card.classList.toggle("flipped");setH()};
+  // Vend kortet: roter til siden står på kant, bytt side, roter tilbake. Virker likt i Safari, Chrome og Firefox.
+  let flipping=false;
+  const flipCard=()=>{const inner=card.querySelector(".card-inner");
+    if(!inner.animate||matchMedia("(prefers-reduced-motion:reduce)").matches){card.classList.toggle("flipped");setH();return}
+    if(flipping)return;flipping=true;const dir=card.classList.contains("flipped")?-1:1;
+    inner.animate([{transform:"perspective(1100px) rotateY(0deg) scale(1)"},{transform:`perspective(1100px) rotateY(${90*dir}deg) scale(1.04)`}],{duration:170,easing:"cubic-bezier(.55,0,.9,.45)"}).onfinish=()=>{
+      card.classList.toggle("flipped");setH();
+      inner.animate([{transform:`perspective(1100px) rotateY(${-90*dir}deg) scale(1.04)`},{transform:"perspective(1100px) rotateY(0deg) scale(1)"}],{duration:260,easing:"cubic-bezier(.2,.7,.25,1.15)"}).onfinish=()=>{flipping=false}};
+  };
   card.onclick=flipCard;
   card.onkeydown=e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();flipCard()}};
   document.getElementById("prev").onclick=()=>{pos=(pos-1+order.length)%order.length;renderCard()};
@@ -3305,5 +3313,12 @@ document.getElementById("delX").onclick=()=>document.getElementById("delDlg").cl
  .casesel{display:flex;align-items:center;gap:10px;position:relative;width:100%;min-height:46px;padding:8px 40px 8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 16px center;color:var(--ink);font-size:16px;font-weight:700;cursor:pointer}
  .casesel .cselk{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400}
 }
+</style>
+<style>
+/* Kortvending gjøres med JS-animasjon; bare én side vises om gangen */
+.card .card-inner,.card.flipped .card-inner{transition:none;transform:none}
+.card .face.back{transform:none}
+.card:not(.flipped) .face.back,.card.flipped .face.front{visibility:hidden}
+.card .card-inner{will-change:transform}
 </style>
 </body></html>
