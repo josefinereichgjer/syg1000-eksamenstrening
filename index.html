@@ -318,6 +318,11 @@ header.top .eyebrow{color:var(--head-on-bg)!important}
 .ucard .side{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px}
 .ucard h3{font-family:var(--f-display);font-size:clamp(24px,4vw,32px);margin:40px 0 8px;line-height:1.2}
 .ucard .kind{font-size:14px;color:var(--muted)}
+.ucard.front{display:flex;flex-direction:column}
+.ucard .uf{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0}
+.ucard .uf h3{margin:0 0 8px;font-size:clamp(30px,6vw,40px)}
+.ucard .uf .tsub{display:block;font-size:.5em;font-weight:500;color:var(--muted);margin-top:6px;letter-spacing:0}
+.ucard.front .tap{margin-top:0;text-align:center}
 .ucard .tap{margin-top:40px;font-size:13px;color:var(--muted)}
 .ucard ul.finds{margin:14px 0 0;padding-left:20px;font-size:18px;line-height:1.55}
 .ucard ul.finds li{margin-bottom:6px}
@@ -2720,11 +2725,11 @@ function renderUCard(){const st=document.getElementById("ustage");
  let body;
  if(ue){body=!uFlip?(uMode==="T"?`<div class="uq rich">${ue.q}</div><div class="tap">Trykk på kortet eller mellomrom for å snu</div>`:`<p class="q">${c._own?"Hvilken sykepleiediagnose passer?":kindTxt}</p><div class="rich">${ue.q}</div><div class="tap">Tenk ut diagnose, mål og tiltak før du snur</div>`)
    :`${uMode==="T"?`<div class="uq rich" style="font-size:22px">${ue.q}</div>`:""}<div class="ub rich">${ue.a}</div>`}
- else if(!uFlip){body=uMode==="T"?`<h3>${c.t}</h3><div class="kind">${kindTxt}</div><div class="tap">Trykk på kortet eller mellomrom for å snu</div>`
+ else if(!uFlip){body=uMode==="T"?`<div class="uf"><h3>${c.t.replace(/ (\(.*\))$/,'<span class="tsub">$1</span>')}</h3><div class="kind">${kindTxt}</div></div><div class="tap">Trykk på kortet eller mellomrom for å snu</div>`
    :`<p class="q">${kindTxt}</p><ul class="finds">${c.front.map(f=>`<li>${f}</li>`).join("")}</ul><div class="tap">Tenk ut diagnose (problem + relatert til), mål og tiltak (når, hvem, hva, hvordan) før du snur</div>`}
  else body=`${uMode==="T"?`<h3 style="margin:4px 0 14px;font-size:24px">${c.t}</h3>`:""}<div class="ub">${uMode==="T"?backTerm(c):backScen(c)}</div>`;
  st.innerHTML=`<div class="u-prog"><span>${uIdx+1} / ${L.length} · ${UFC[uMode].filter(x=>known.has(uid(x))).length} kan</span><button type="button" id="ushuf">Bland</button></div>
-  <div class="ucard" id="ucard" tabindex="0" role="button" aria-label="Snu kortet" style="--uc:${col==="#FFFFFF"?"var(--line)":col}">
+  <div class="ucard${!uFlip&&uMode==="T"&&!ue?" front":""}" id="ucard" tabindex="0" role="button" aria-label="Snu kortet" style="--uc:${col==="#FFFFFF"?"var(--line)":col}">
    <div class="side"><span>${uFlip?"Bakside":"Forside"}${c._own?" · eget kort":ue?" · ✎ redigert":""}</span>${uFlip||uMode==="T"?dots(cn):dot(cn[0])}</div>${body}</div>
   <div class="u-nav"><button class="btn" id="uprev">← Forrige</button><button class="btn again" id="uagain">Øv mer</button><button class="btn star" id="ustarcard" aria-pressed="${stars.has(uid(c))}" title="Stjernemerk" aria-label="Stjernemerk kortet">${stars.has(uid(c))?"★":"☆"}</button><button class="btn know chk" id="uknow" title="Kan den" aria-label="Kan den"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg></button><button class="btn" id="unext">Neste →</button><button class="btn primary" id="uflip">${uFlip?"Vis forsiden":"Snu kortet"}</button><button class="btn" id="uedit" title="Rediger, bytt kategori eller slett kortet">✎ Rediger</button></div>`;
  document.getElementById("uedit").onclick=()=>uOpen(c);
