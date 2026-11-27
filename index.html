@@ -871,14 +871,24 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
 <button type="button" class="rtb sw" data-hl="r" title="Rosa markering" aria-label="Rosa markering"><i class="hl-r"></i></button>
 <button type="button" class="rtb sw" data-hl="l" title="Lilla markering" aria-label="Lilla markering"><i class="hl-l"></i></button>
 <button type="button" class="rtb sw" data-hl="y" title="Gul markering" aria-label="Gul markering"><i class="hl-y"></i></button>
-<button type="button" class="rtb sw" data-hl="x" title="Fjern markering" aria-label="Fjern markering"><i class="hlx"></i></button></div>
+<button type="button" class="rtb sw" data-hl="x" title="Fjern markering" aria-label="Fjern markering"><i class="hlx"></i></button><span class="rtsep"></span>
+<button type="button" class="rtb tcb" data-tc="r" title="Rød tekst" aria-label="Rød tekst"><span class="tc-r">A</span></button>
+<button type="button" class="rtb tcb" data-tc="b" title="Blå tekst" aria-label="Blå tekst"><span class="tc-b">A</span></button>
+<button type="button" class="rtb tcb" data-tc="g" title="Grønn tekst" aria-label="Grønn tekst"><span class="tc-g">A</span></button>
+<button type="button" class="rtb tcb" data-tc="l" title="Lilla tekst" aria-label="Lilla tekst"><span class="tc-l">A</span></button>
+<button type="button" class="rtb tcb" data-tc="o" title="Oransje tekst" aria-label="Oransje tekst"><span class="tc-o">A</span></button>
+<button type="button" class="rtb tcb" data-tc="x" title="Vanlig tekstfarge" aria-label="Vanlig tekstfarge"><span>A</span></button><span class="rtsep"></span>
+<button type="button" class="rtb fsb" data-fs="2" title="Liten skrift" aria-label="Liten skrift"><span style="font-size:11px">A</span></button>
+<button type="button" class="rtb fsb" data-fs="3" title="Vanlig skrift" aria-label="Vanlig skrift"><span style="font-size:15px">A</span></button>
+<button type="button" class="rtb fsb" data-fs="5" title="Stor skrift" aria-label="Stor skrift"><span style="font-size:19px">A</span></button>
+<button type="button" class="rtb fsb" data-fs="6" title="Ekstra stor skrift" aria-label="Ekstra stor skrift"><span style="font-size:23px;font-weight:700">A</span></button></div>
 <label id="mineQL" for="mineQ">Spørsmål (forsiden)</label><div class="rte" id="mineQ" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="mineQL"></div>
 <div class="imgrow" data-side="q"><img alt="Bilde på forsiden" hidden><button type="button" class="btn imgadd">+ Bilde på forsiden</button><button type="button" class="btn imgdel" hidden>Fjern bildet</button><span class="hint imgmsg"></span><input type="file" accept="image/*" hidden></div>
 <label id="mineAL" for="mineA">Svar (baksiden)</label><div class="rte" id="mineA" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="mineAL"></div>
 <div class="imgrow" data-side="a"><img alt="Bilde på baksiden" hidden><button type="button" class="btn imgadd">+ Bilde på baksiden</button><button type="button" class="btn imgdel" hidden>Fjern bildet</button><span class="hint imgmsg"></span><input type="file" accept="image/*" hidden></div>
 <div id="mineCatWrap" hidden><label for="mineCat">Kategori</label><select id="mineCat" class="minecat"></select></div>
 <div id="uCatWrap" hidden><label>Kategori (velg ett eller flere behov)</label><div class="ucats" id="uCats"></div></div>
-<p class="hint" id="mineHelp">Marker tekst, og velg fet skrift eller en farge. Du kan også lime inn et bilde i et av feltene.</p>
+<p class="hint" id="mineHelp">Marker tekst, og velg fet skrift, farge eller størrelse. Du kan også lime inn et bilde i et av feltene.</p>
 <p class="hint" id="mineNote"></p>
 <p id="mineErr" class="hint aerr" role="alert" hidden></p>
 <div class="row"><button class="btn primary" type="submit" id="mineSave">Lagre kortet</button><button class="btn" id="mineX" type="button">Avbryt</button><span class="sp"></span><button class="btn" id="mineReset" type="button" hidden>Tilbakestill</button><button class="btn" id="mineDel" type="button" hidden>Slett</button></div>
@@ -2445,29 +2455,37 @@ const escH=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>{const r={id:m.id.slice(0,40),q:m.h?richClean(m.q).slice(0,2000):m.q.slice(0,300),a:m.h?richClean(m.a).slice(0,8000):m.a.slice(0,1500),t:+m.t||0};if(m.h)r.h=1;if(m.x)r.x=1;if(typeof m.o==="string")r.o=m.o.slice(0,600);if(m.u==="T"||m.u==="SC")r.u=m.u;if(typeof m.c==="string"&&m.c.length<=60)r.c=m.c;if(typeof m.n==="string"&&/^[RSTVEAOHXG]{1,10}$/.test(m.n))r.n=m.n;["qi","ai"].forEach(k=>{const v=m[k];if(v&&typeof v.id==="string"&&/^[a-z0-9]{4,40}$/.test(v.id))r[k]={id:v.id,w:+v.w||0,h:+v.h||0}});return r}).slice(0,500);
 // Formatert tekst: bare fet skrift, fargemarkering, avsnitt og lister slipper gjennom.
 const HL={g:"#D7ECCB",b:"#D6E4F4",r:"#F6DCE4",l:"#E6DDF3",y:"#F5EBB5"};
+// Tekstfarger og skriftstørrelser i redigeringen
+const TC={r:"#C0392B",b:"#2563B0",g:"#2E7D3E",l:"#7B4BB7",o:"#C26A12",x:"#010101"};
+const TCK={};Object.entries(TC).forEach(([k,v])=>{const n=parseInt(v.slice(1),16);TCK[v.toLowerCase()]=k;TCK[`rgb(${n>>16},${n>>8&255},${n&255})`]=k});
+const FSK={"1":"s","2":"s","5":"l","6":"xl","7":"xl","x-small":"s","small":"s","large":"l","x-large":"l","xx-large":"xl","xxx-large":"xl","-webkit-xxx-large":"xl"};
 const HLRGB={};Object.entries(HL).forEach(([k,v])=>{const n=parseInt(v.slice(1),16);HLRGB[`rgb(${n>>16}, ${n>>8&255}, ${n&255})`]=k});
 function richClean(html){
   const t=document.createElement("template");t.innerHTML=String(html||"");
   const out=[];
-  const walk=(n,bold,hl,ul)=>{
-    if(n.nodeType===3){let x=escH(n.nodeValue);if(!x)return;if(bold)x="<b>"+x+"</b>";if(ul)x="<u>"+x+"</u>";if(hl)x=`<mark class="hl-${hl}">${x}</mark>`;out.push(x);return}
+  const walk=(n,bold,hl,ul,tc,fs)=>{
+    if(n.nodeType===3){let x=escH(n.nodeValue);if(!x)return;if(bold)x="<b>"+x+"</b>";if(ul)x="<u>"+x+"</u>";if(tc||fs)x=`<span class="${[tc?"tc-"+tc:"",fs?"fs-"+fs:""].filter(Boolean).join(" ")}">${x}</span>`;if(hl)x=`<mark class="hl-${hl}">${x}</mark>`;out.push(x);return}
     if(n.nodeType!==1)return;
     const tag=n.tagName.toLowerCase();
     if(tag==="br"){out.push("<br>");return}
     if(/^(script|style|template|iframe|object|img|svg)$/.test(tag))return;
-    let b=bold,h=hl,u=ul;
+    let b=bold,h=hl,u=ul,c=tc,f=fs;
+    const cls=(n.className&&typeof n.className==="string")?n.className:"";
+    {const m=cls.match(/(?:^|\s)tc-([rbglo])(?:\s|$)/);if(m)c=m[1];const m2=cls.match(/(?:^|\s)fs-(s|l|xl)(?:\s|$)/);if(m2)f=m2[1]}
+    {const col=((tag==="font"&&n.getAttribute("color"))||(n.style&&n.style.color)||"").toLowerCase().replace(/\s+/g,"");if(col&&col in TCK){c=TCK[col]==="x"?null:TCK[col]}}
+    {const sz=tag==="font"&&n.getAttribute("size");if(sz){f=FSK[sz]||null}const fz=n.style&&n.style.fontSize;if(fz){f=FSK[fz]||(/^(medium|1em|100%)$/.test(fz)?null:f)}}
     if(tag==="b"||tag==="strong")b=true;
     if(tag==="u"||tag==="ins"||/underline/.test((n.style&&(n.style.textDecoration||n.style.textDecorationLine))||""))u=true;
     const fw=n.style&&n.style.fontWeight;if(fw==="bold"||+fw>=600)b=true;if(fw==="normal"||(+fw&&+fw<600))b=false;
     const cm=(n.className&&typeof n.className==="string")?n.className.match(/(?:^|\s)hl-([gbrly])(?:\s|$)/):null;if(cm)h=cm[1];
     const bg=n.style&&n.style.backgroundColor;if(bg){h=HLRGB[bg.replace(/\s+/g,"").replace(/,/g,", ")]||(/transparent|rgba\(0, 0, 0, 0\)/.test(bg)?null:h)}
     const blk=/^(p|div|li|h[1-6])$/.test(tag);
-    if(tag==="ul"||tag==="ol"){out.push(`<${tag}${n.classList.contains("nl")?' class="nl"':""}>`);n.childNodes.forEach(c=>walk(c,b,h,u));out.push(`</${tag}>`);return}
-    if(blk&&tag!=="li"&&n.querySelector("ul,ol,p,div,li,h1,h2,h3")){n.childNodes.forEach(c=>walk(c,b,h,u));return}
-    if(blk){const tg=tag==="li"?"li":"p";out.push(`<${tg}>`);n.childNodes.forEach(c=>walk(c,b,h,u));out.push(`</${tg}>`);return}
-    n.childNodes.forEach(c=>walk(c,b,h,u));
+    if(tag==="ul"||tag==="ol"){out.push(`<${tag}${n.classList.contains("nl")?' class="nl"':""}>`);n.childNodes.forEach(x=>walk(x,b,h,u,c,f));out.push(`</${tag}>`);return}
+    if(blk&&tag!=="li"&&n.querySelector("ul,ol,p,div,li,h1,h2,h3")){n.childNodes.forEach(x=>walk(x,b,h,u,c,f));return}
+    if(blk){const tg=tag==="li"?"li":"p";out.push(`<${tg}>`);n.childNodes.forEach(x=>walk(x,b,h,u,c,f));out.push(`</${tg}>`);return}
+    n.childNodes.forEach(x=>walk(x,b,h,u,c,f));
   };
-  t.content.childNodes.forEach(c=>walk(c,false,null,false));
+  t.content.childNodes.forEach(c=>walk(c,false,null,false,null,null));
   return out.join("").replace(/<\/b><b>/g,"").replace(/<\/u><u>/g,"").replace(/<p><\/p>/g,"<p><br></p>").trim();
 }
 const richToEditor=h=>String(h).replace(/<mark class="hl-([gbrly])">/g,(m,k)=>`<span style="background-color:${HL[k]}">`).replace(/<\/mark>/g,"</span>");
@@ -2592,6 +2610,8 @@ function editOpen(c){uDlgReset();
   dlg.querySelectorAll(".rtb").forEach(b=>{b.addEventListener("mousedown",e=>e.preventDefault());
     b.addEventListener("click",()=>{const sel=getSelection();if(!sel.rangeCount||!last.contains(sel.anchorNode)){last.focus();return}
       if(b.dataset.cmd){document.execCommand("styleWithCSS",false,false);document.execCommand(b.dataset.cmd)}
+      else if(b.dataset.tc){document.execCommand("styleWithCSS",false,false);document.execCommand("foreColor",false,TC[b.dataset.tc])}
+      else if(b.dataset.fs){document.execCommand("styleWithCSS",false,false);document.execCommand("fontSize",false,b.dataset.fs)}
       else{document.execCommand("styleWithCSS",false,true);document.execCommand("hiliteColor",false,b.dataset.hl==="x"?"transparent":HL[b.dataset.hl])}})});
   // Bilder
   window.imgPick=async(sd,file)=>{const r=dlg.querySelector(`.imgrow[data-side="${sd}"]`),msg=r.querySelector(".imgmsg");msg.textContent="Gjør klar bildet …";
@@ -2775,7 +2795,7 @@ let uDlg=null;
 const LBL={q:"Spørsmål (forsiden)",a:"Svar (baksiden)"};
 function uDlgReset(){uDlg=null;document.getElementById("uCatWrap").hidden=true;document.getElementById("mineCatWrap").hidden=true;document.querySelectorAll("#mineDlg .imgrow").forEach(r=>r.hidden=false);
   document.getElementById("mineQL").textContent=LBL.q;document.getElementById("mineAL").textContent=LBL.a;
-  document.getElementById("mineHelp").textContent="Marker tekst, og velg fet skrift eller en farge. Du kan også lime inn et bilde i et av feltene."}
+  document.getElementById("mineHelp").textContent="Marker tekst, og velg fet skrift, farge eller størrelse. Du kan også lime inn et bilde i et av feltene."}
 const toRich=h=>richClean(String(h).replace(/<h4>(.*?)<\/h4>/g,"<p><b>$1</b></p>").replace(/<p class="hw">/g,"<p>"));
 function uCatsRender(sel){const keys=Object.keys(NEEDS).filter(k=>uDlg.mode==="T"||k!=="G");const box=document.getElementById("uCats");
   box.innerHTML=keys.map(k=>`<button type="button" data-k="${k}" aria-pressed="${sel.includes(k)}">${dot(k)}${NEEDS[k][0]}</button>`).join("");
@@ -2786,7 +2806,7 @@ function uOpen(c){const dlg=document.getElementById("mineDlg");mineEditing=null;
   document.getElementById("mineH").textContent=c?"Rediger kortet":"Nytt utdypende kort";
   document.getElementById("mineQL").textContent=uMode==="T"?"Begrep eller tittel (forsiden)":"Funn fra caset (forsiden)";
   document.getElementById("mineAL").textContent=uMode==="T"?"Forklaring (baksiden)":"Sykepleiediagnose, mål og tiltak (baksiden)";
-  document.getElementById("mineHelp").textContent="Marker tekst, og velg fet skrift eller en farge.";
+  document.getElementById("mineHelp").textContent="Marker tekst, og velg fet skrift, farge eller størrelse.";
   let q="",a="";
   if(own){q=own.q;a=own.a}else if(ed){q=ed.q;a=ed.a}
   else if(c){q=uMode==="T"?escH(plainOf(c.t)):richClean(`<ul>${c.front.map(f=>`<li>${f}</li>`).join("")}</ul>`);a=toRich(uMode==="T"?backTerm(c):backScen(c))}
@@ -3177,6 +3197,11 @@ const QUIZ=[["SYG1000", "Hva er riktig rekkefølge i sykepleieprosessen?", ["Dat
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--hl-g:rgba(127,195,112,.30);--hl-b:rgba(138,169,218,.32);--hl-r:rgba(226,140,170,.30);--hl-l:rgba(170,145,220,.32);--hl-y:rgba(214,196,90,.30)}}
 :root[data-theme="dark"]{--hl-g:rgba(127,195,112,.30);--hl-b:rgba(138,169,218,.32);--hl-r:rgba(226,140,170,.30);--hl-l:rgba(170,145,220,.32);--hl-y:rgba(214,196,90,.30)}
 mark[class^="hl-"],i[class^="hl-"]{color:inherit;border-radius:4px;padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.tc-r{color:#C0392B}.tc-b{color:#2563B0}.tc-g{color:#2E7D3E}.tc-l{color:#7B4BB7}.tc-o{color:#C26A12}
+.fs-s{font-size:.8em}.fs-l{font-size:1.3em}.fs-xl{font-size:1.65em;line-height:1.2}
+.rich font[size="1"],.rich font[size="2"],.rte font[size="1"],.rte font[size="2"]{font-size:.8em}.rte font[size="3"],.rte font[size="4"]{font-size:1em}.rte font[size="5"]{font-size:1.3em}.rte font[size="6"],.rte font[size="7"]{font-size:1.65em}
+.rtb.tcb span{font-weight:700;font-size:16px}
+@media (max-width:720px){#mineDlg .rtbar{flex-wrap:wrap!important;justify-content:flex-start!important;gap:5px!important}}
 .hl-g{background:var(--hl-g)}.hl-b{background:var(--hl-b)}.hl-r{background:var(--hl-r)}.hl-l{background:var(--hl-l)}.hl-y{background:var(--hl-y)}
 .rich u,#mineDlg .rte u{text-decoration-thickness:1.5px;text-underline-offset:3px}.rich ul:not(.nl){margin:.2em 0 .6em;padding-left:1.3em;list-style:disc}.rich ul:not(.nl) li{margin:.15em 0}#mineDlg .rte ul{margin:.2em 0;padding-left:1.4em}.rich p{margin:0 0 .6em}.rich p:last-child{margin-bottom:0}.rich b{font-weight:700}
 .rtbar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:10px 0 2px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--field)}
