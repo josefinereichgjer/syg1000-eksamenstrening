@@ -2728,7 +2728,7 @@ function renderUCard(){const st=document.getElementById("ustage");
  let body;
  if(ue){body=!uFlip?(uMode==="T"?`<div class="uq rich">${ue.q}</div><div class="tap">Trykk på kortet eller mellomrom for å snu</div>`:`<p class="q">${c._own?"Hvilken sykepleiediagnose passer?":kindTxt}</p><div class="rich">${ue.q}</div><div class="tap">Tenk ut diagnose, mål og tiltak før du snur</div>`)
    :`<div class="ub rich">${ue.a}</div>`}
- else if(!uFlip){body=uMode==="T"?`<div class="uf"><h3>${c.t.replace(/ (\(.*\))$/,'<span class="tsub">$1</span>')}</h3><div class="kind">${kindTxt}</div></div><div class="tap">Trykk på kortet eller mellomrom for å snu</div>`
+ else if(!uFlip){body=uMode==="T"?`<div class="uf"><h3>${c.t.replace(/ \(.*\)$/,"")}</h3></div>`
    :`<p class="q">${kindTxt}</p><ul class="finds">${c.front.map(f=>`<li>${f}</li>`).join("")}</ul><div class="tap">Tenk ut diagnose (problem + relatert til), mål og tiltak (når, hvem, hva, hvordan) før du snur</div>`}
  else body=`<div class="ub">${uMode==="T"?backTerm(c):backScen(c)}</div>`;
  st.innerHTML=`<div class="u-prog"><span>${uIdx+1} / ${L.length} · ${UFC[uMode].filter(x=>known.has(uid(x))).length} kan</span><button type="button" id="ushuf">Bland</button></div>
