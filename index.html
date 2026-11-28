@@ -1842,6 +1842,7 @@ CASES.push({
   id: "liv",
   group: "Eksamenstrening 1",
   name: "Liv Andersen, 88 år",
+  label: "Eksamenstrening 1", sgroup: "Eksamenstrening",
   setting: "Korttidsopphold, sykehjem",
   theme: "Datasamling · personlig hygiene · aktivitet · pleieplan",
   story: `<p>Liv Andersen, 88 år, er enke og har fått tilbud om korttidsopphold på sykehjemmet. Hun har to barn. Liv har arbeidet som lærer da hun var yrkesaktiv. Hun har vært glad i å gå i fjellet, strikking og løse kryssord. Liv er klar og orientert. Hun hører godt, men har nedsatt syn. Liv har en datter som bor i nærheten, som hun har god kontakt med.</p>
@@ -1896,6 +1897,7 @@ CASES.push({
   id: "signe",
   group: "Eksamenstrening 2",
   name: "Signe Olsen, 80 år",
+  label: "Eksamenstrening 2", sgroup: "Eksamenstrening",
   setting: "Hjemmesykepleien",
   theme: "Vekttap · KMI · urininkontinens · obstipasjon · søvn",
   story: `<p>Du arbeider som sykepleier i hjemmesykepleien og har ansvar for en av brukerne, Signe Olsen, 80 år. Hun er enke, bor i egen leilighet og har hjemmesykepleie to ganger per uke for administrering av medikamenter. Til vanlig steller Signe seg selv, lager mat og går korte turer i korridoren utenfor leiligheten.</p>
@@ -2269,11 +2271,13 @@ let current="edvard";{const sc=S.get("syg-case","");if(sc&&typeof CASES!=="undef
 if(!CASES.find(c=>c.id===current))current=CASES[0].id;
 function renderList(){
   const el=document.getElementById("caselist");
-  const groups=[...new Set(CASES.map(c=>c.group))];
-  el.innerHTML=groups.map(g=>`<div class="cgroup"><h3 class="ghead">${g}</h3><div class="crow">`+CASES.filter(c=>c.group===g).map(c=>`<button data-id="${c.id}" aria-current="${c.id===current}"><b>${c.name}</b></button>`).join("")+`</div></div>`).join("");
+  // Knapper i menyen: sgroup samler grupper under én overskrift, label er knappeteksten
+  const sg=c=>c.sgroup||c.group,lab=c=>c.label||c.name;
+  const groups=[...new Set(CASES.map(sg))];
+  el.innerHTML=groups.map(g=>`<div class="cgroup"><h3 class="ghead">${g}</h3><div class="crow">`+CASES.filter(c=>sg(c)===g).map(c=>`<button data-id="${c.id}" aria-current="${c.id===current}"><b>${lab(c)}</b></button>`).join("")+`</div></div>`).join("");
   let cs=document.getElementById("caseSel");if(!cs){cs=document.createElement("label");cs.id="caseSel";cs.className="casesel";el.parentNode.insertBefore(cs,el)}
   const cc=CASES.find(c=>c.id===current);
-  cs.innerHTML=`<span class="cselk">Case</span><span class="cselv">${cc?cc.name:"Velg case"}</span><select aria-label="Velg case">${groups.map(g=>`<optgroup label="${g}">${CASES.filter(c=>c.group===g).map(c=>`<option value="${c.id}"${c.id===current?" selected":""}>${c.name}</option>`).join("")}</optgroup>`).join("")}</select>`;
+  cs.innerHTML=`<span class="cselk">Case</span><span class="cselv">${cc?lab(cc):"Velg case"}</span><select aria-label="Velg case">${groups.map(g=>`<optgroup label="${g}">${CASES.filter(c=>sg(c)===g).map(c=>`<option value="${c.id}"${c.id===current?" selected":""}>${lab(c)}</option>`).join("")}</optgroup>`).join("")}</select>`;
   cs.querySelector("select").onchange=e=>{current=e.target.value;S.set("syg-case",current);renderList();renderCase();window.scrollTo({top:0,behavior:"smooth"})};
   el.querySelectorAll("button").forEach(b=>b.onclick=()=>{current=b.dataset.id;S.set("syg-case",current);const st=el.scrollTop;renderList();el.scrollTop=st;renderCase();window._sbUpd&&window._sbUpd();window.scrollTo({top:0,behavior:"smooth"})});
 }
