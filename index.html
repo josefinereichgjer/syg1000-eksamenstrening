@@ -2236,7 +2236,25 @@ function taskDoc(caseId,i){
   const c=CASES.find(x=>x.id===caseId);
   return {text:S.get(`syg-ans-${caseId}-${i}`,""),checks:(c.tasks[i].check||[]).map((_,j)=>!!S.get(`chk-${caseId}-${i}-${j}`,false)),updated:Date.now()};
 }
-function saveTask(caseId,i,delay){cloudWrite(`/ans-${caseId}-${i}`,()=>taskDoc(caseId,i),delay)}
+function saveTask(caseId,i,delay){ansStamp(caseId,i);ansCloudSave();cloudWrite(`/ans-${caseId}-${i}`,()=>taskDoc(caseId,i),delay)}
+// ---- Egne svar på caser og eksamensoppgaver ----
+// Lagres som formatert tekst i nettleseren, og på brukeren (accounts/uid/images/zz-answers) når man er logget inn.
+function ansPlain(v){v=String(v||"");if(v.indexOf("<")<0)return v;const d=document.createElement("div");d.innerHTML=v.replace(/<\/(p|li|div)>/g,"$& ").replace(/<br>/g," ");return d.textContent}
+function ansWords(t){t=String(t||"").trim();return t?t.split(/\s+/).length:0}
+function ansToEditor(v){v=String(v||"");if(!v)return "";if(v.indexOf("<")<0)return escH(v).replace(/\n/g,"<br>");return richToEditor(richClean(v))}
+function ansStamp(caseId,i){const m=S.get("syg-ans-ts",{});m[`${caseId}-${i}`]=Date.now();S.set("syg-ans-ts",m)}
+const ANS={t:null};
+function ansDoc(){return (typeof Acct!=="undefined"&&Acct.uid&&Acct.db)?Acct.db.collection("accounts").doc(Acct.uid).collection("images").doc("zz-answers"):null}
+function ansCollect(){const v={};for(let k=0;k<localStorage.length;k++){const key=localStorage.key(k);if(/^(syg-ans-|chk-)/.test(key)&&key!=="syg-ans-ts")v[key]=S.get(key,null)}return v}
+function ansCloudSave(now){const d=ansDoc();if(!d)return;clearTimeout(ANS.t);ANS.t=setTimeout(()=>{setSync("saving","Lagrer …");
+  d.set({data:JSON.stringify({v:ansCollect(),ts:S.get("syg-ans-ts",{})}),updated:Date.now()}).then(()=>setSync("cloud","Lagret på «"+Acct.name+"»")).catch(()=>setSync("error","Kunne ikke lagre svarene på brukeren, lagret i nettleseren"))},now?50:1500)}
+async function ansCloudLoad(){const d=ansDoc();if(!d)return;try{const snap=await d.get();let changed=false;
+  if(snap.exists){let o={};try{o=JSON.parse(snap.data().data||"{}")}catch(e){}const v=o.v||{},ts=o.ts||{},lts=S.get("syg-ans-ts",{});
+    Object.entries(v).forEach(([key,val])=>{const m=key.match(/^(?:syg-ans|chk)-(.+?)-(\d+)(?:-\d+)?$/),id=m?`${m[1]}-${m[2]}`:key,loc=S.get(key,null);
+      if(loc===null||loc===""||loc===false||(ts[id]||0)>(lts[id]||0)){if(JSON.stringify(loc)!==JSON.stringify(val)){S.set(key,val);changed=true}}});
+    Object.keys(ts).forEach(id=>{if((ts[id]||0)>(lts[id]||0))lts[id]=ts[id]});S.set("syg-ans-ts",lts)}
+  ansCloudSave(true);if(changed&&typeof renderCase==="function")renderCase()}catch(e){}}
+function ansClearLocal(){const ks=[];for(let k=0;k<localStorage.length;k++){const key=localStorage.key(k);if(/^(syg-ans-|chk-|syg-exm-)/.test(key))ks.push(key)}ks.forEach(k=>localStorage.removeItem(k));S.set("syg-exam",null)}
 function savePrefs(){cloudWrite("/prefs",()=>({known:[...known],stars:[...stars],updated:Date.now()}),800);if(typeof acctSave==="function")acctSave()}
 async function initCloud(){
   try{
@@ -2308,7 +2326,7 @@ function renderCase(){
     return `<div class="task">
       <div class="tmeta"><span class="tnum">Oppgave ${t.label||i+1}</span><span class="badge ${cls}">${t.verb}${t.weight?` · ${t.weight} %`:""}</span></div>
       <p class="q">${t.q}</p>
-      <textarea id="${key}"${X&&X.stage==="done"?" readonly":""} placeholder="Skriv ditt eget svar først, i hele setninger og med fagbegreper …">${esc(S.get(key,""))}</textarea>
+      <div class="ansed">${X&&X.stage==="done"?"":`<div class="rtbar ansbar" role="toolbar" aria-label="Formatering"><button type="button" class="rtb" data-cmd="bold" title="Fet skrift (Ctrl+B)" aria-label="Fet skrift"><b>F</b></button><button type="button" class="rtb" data-cmd="underline" title="Understrek (Ctrl+U)" aria-label="Understrek"><u>U</u></button><button type="button" class="rtb" data-cmd="insertUnorderedList" title="Punktliste" aria-label="Punktliste"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="4" cy="5" r="1.6" fill="currentColor"/><circle cx="4" cy="10" r="1.6" fill="currentColor"/><circle cx="4" cy="15" r="1.6" fill="currentColor"/><path d="M8 5h9M8 10h9M8 15h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><span class="rtsep"></span><button type="button" class="rtb sw" data-hl="g" title="Grønn markering" aria-label="Grønn markering"><i class="hl-g"></i></button><button type="button" class="rtb sw" data-hl="b" title="Blå markering" aria-label="Blå markering"><i class="hl-b"></i></button><button type="button" class="rtb sw" data-hl="r" title="Rosa markering" aria-label="Rosa markering"><i class="hl-r"></i></button><button type="button" class="rtb sw" data-hl="l" title="Lilla markering" aria-label="Lilla markering"><i class="hl-l"></i></button><button type="button" class="rtb sw" data-hl="y" title="Gul markering" aria-label="Gul markering"><i class="hl-y"></i></button><button type="button" class="rtb sw" data-hl="x" title="Fjern markering" aria-label="Fjern markering"><i class="hlx"></i></button></div>`}<div class="rte ansrte" id="${key}" contenteditable="${X&&X.stage==="done"?"false":"true"}" role="textbox" aria-multiline="true" aria-label="Ditt svar på oppgave ${t.label||i+1}" data-ph="Skriv ditt eget svar først, i hele setninger og med fagbegreper …">${ansToEditor(S.get(key,""))}</div></div>
       <div class="row">${(t.answer||t.check)?`<button class="btn primary" data-toggle="${i}" data-label="${t.answer?bLab:"Vis hva sensor ser etter"}">${t.answer?bLab:"Vis hva sensor ser etter"}</button>`:`<span class="hint">Ingen løsningsforslag ennå</span>`}<span class="hint" id="wc-${i}"></span></div>
       ${(t.answer||t.check)?`<div class="answer" id="ans-${i}"${X&&X.stage==="done"?"":" hidden"}>
         ${t.answer?`<h4>${hLab}</h4><div class="model">${t.answer}</div>`:""}
@@ -2317,8 +2335,8 @@ function renderCase(){
       </div>`:""}</div>`}).join("")}</div>`;
   c.tasks.forEach((t,i)=>{
     const key=X?`syg-exm-${c.id}-${i}`:`syg-ans-${c.id}-${i}`, ta=document.getElementById(key), wc=document.getElementById("wc-"+i);
-    const upd=()=>{const n=ta.value.trim()?ta.value.trim().split(/\s+/).length:0;wc.textContent=n?`${n} ord`:""};
-    upd(); ta.addEventListener("input",()=>{S.set(key,ta.value);upd();if(X)exWordsUpd(c);else saveTask(c.id,i)});
+    const upd=()=>{const n=ansWords(ta.innerText);wc.textContent=n?`${n} ord`:""};
+    upd(); ta.addEventListener("input",()=>{const h=richClean(ta.innerHTML);S.set(key,richIsEmpty(h)?"":h);upd();if(X)exWordsUpd(c);else saveTask(c.id,i)});
     (t.check||[]).forEach((_,j)=>{const id=`chk-${c.id}-${i}-${j}`,cb=document.getElementById(id);if(!cb)return;cb.checked=S.get(id,false);cb.onchange=()=>{S.set(id,cb.checked);saveTask(c.id,i,300)}});
   });
   pane.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{const a=document.getElementById("ans-"+b.dataset.toggle);a.hidden=!a.hidden;b.textContent=a.hidden?b.dataset.label:b.dataset.label.replace(/^Vis/,"Skjul")});
@@ -2332,7 +2350,7 @@ function exSave(){S.set("syg-exam",EX)}
 const exOn=c=>!!(EX&&EX.case===c.id);
 const examable=c=>!c.notion&&!c.pdf&&(c.tasks||[]).length>0;
 const exFmt=ms=>{ms=Math.max(0,Math.round(ms/1000));const h=Math.floor(ms/3600),m=Math.floor(ms%3600/60),x=ms%60;return (h?h+":"+String(m).padStart(2,"0"):String(m))+":"+String(x).padStart(2,"0")};
-const exWordsOf=c=>c.tasks.reduce((n,_,i)=>{const v=String(S.get(`syg-exm-${c.id}-${i}`,"")).trim();return n+(v?v.split(/\s+/).length:0)},0);
+const exWordsOf=c=>c.tasks.reduce((n,_,i)=>n+ansWords(ansPlain(S.get(`syg-exm-${c.id}-${i}`,""))),0);
 function exStop(){clearInterval(exTick);exTick=null}
 function exBar(c,X){
   if(X.stage==="setup"){const opts=[[60,"1 time"],[120,"2 timer"],[180,"3 timer"],[240,"4 timer"],[0,"Uten tid"]];
@@ -2368,7 +2386,7 @@ function exWire(c,X){
   q("exKeep").onclick=e=>exConfirm(e.currentTarget,"Trykk igjen: erstatter svarene i caset",()=>{
     c.tasks.forEach((_,i)=>{S.set(`syg-ans-${c.id}-${i}`,S.get(`syg-exm-${c.id}-${i}`,""));saveTask(c.id,i)});exQuit()});
 }
-renderList();renderCase();
+renderList();Promise.resolve().then(()=>renderCase());
 (function(){const L=document.getElementById("caselist"),U=document.getElementById("sUp"),D=document.getElementById("sDown");
   const upd=()=>{const m=matchMedia("(max-width:860px)").matches;U.hidden=m||L.scrollTop<4;D.hidden=m||L.scrollTop+L.clientHeight>=L.scrollHeight-4};
   U.onclick=()=>L.scrollBy({top:-260,behavior:"smooth"});D.onclick=()=>L.scrollBy({top:260,behavior:"smooth"});
@@ -2693,7 +2711,7 @@ function acctSave(){if(!Acct.uid||!Acct.db)return;clearTimeout(Acct.timer);Acct.
 function acctApply(v){
   known=new Set(v.known||[]);stars=new Set(v.stars||[]);mine=cleanMine(v.custom);
   S.set("syg-known",[...known]);S.set("syg-stars",[...stars]);S.set("syg-custom",mine);mineSync();
-  buildOrder(false);renderDecks();renderCard();if(typeof renderUFilter==="function"){renderUFilter();renderUCard()}if(window.quizRefresh)quizRefresh()}
+  buildOrder(false);renderDecks();renderCard();if(typeof renderUFilter==="function"){renderUFilter();renderUCard()}if(window.quizRefresh)quizRefresh();ansCloudLoad()}
 async function acctLoad(){const uid=Acct.uid;setSync("saving","Henter brukeren …");try{const d=await acctDoc().get();if(Acct.uid!==uid)return;
   if(d.exists){acctApply(d.data());setSync("cloud","Lagret på «"+Acct.name+"»");return}
   // Ny bruker: ta med det som ligger i nettleseren, og fremgangen fra et gammelt brukernavn uten passord hvis det finnes.
@@ -2701,7 +2719,7 @@ async function acctLoad(){const uid=Acct.uid;setSync("saving","Henter brukeren �
   acctApply({known:[...new Set([...(old.known||[]),...known])],stars:[...new Set([...(old.stars||[]),...stars])],custom:mine});acctSave();IMG.uploadAll(mine)
 }catch(e){setSync("error","Kunne ikke hente brukeren, lagret i nettleseren")}}
 function acctUI(){const b=document.getElementById("acctBtn");if(!b)return;b.hidden=false;b.textContent=Acct.uid?"Bruker: "+Acct.name:"Logg inn"}
-function acctClearLocal(){IMG.clearLocal();S.set("qz-state",null);known=new Set();stars=new Set();mine=[];S.set("syg-known",[]);S.set("syg-stars",[]);S.set("syg-custom",[]);S.set("syg-pos",null);pos=0;mineSync();
+function acctClearLocal(){clearTimeout(ANS.t);ansClearLocal();EX=null;setTimeout(()=>{if(typeof renderCase==="function")renderCase()});IMG.clearLocal();S.set("qz-state",null);known=new Set();stars=new Set();mine=[];S.set("syg-known",[]);S.set("syg-stars",[]);S.set("syg-custom",[]);S.set("syg-pos",null);pos=0;mineSync();
   buildOrder(false);renderDecks();renderCard();if(typeof renderUFilter==="function"){renderUFilter();renderUCard()}if(window.quizRefresh)quizRefresh()}
 function acctInit(){acctUI();if(!FIREBASE_CONFIG.apiKey)return;
   const load=src=>new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)});
@@ -3486,4 +3504,29 @@ draw();})();
 .rtdim{opacity:.2}
 @media (max-width:720px){.rtkids{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;padding-top:14px;border-top:1.5px solid var(--line);margin-top:9px}.rtkids::before{top:-10px;height:9px}.rtkid{padding:0}.rtkid::before,.rtkid::after{display:none}.rtleaf{width:auto;height:100%;box-sizing:border-box;padding:8px}}
 </style>
+<style>
+/* Svarfelt på caser: samme redigeringsverktøy som flashcards */
+.ansed{margin-top:8px;max-width:72ch}
+.ansed .rtbar{margin:0 0 6px}
+.ansrte{min-height:120px;font-size:15px;line-height:1.55;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);outline:none;white-space:pre-wrap;word-break:break-word}
+.ansrte:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.ansrte:empty::before{content:attr(data-ph);color:var(--muted);pointer-events:none}
+.ansrte p,.ansrte div{margin:0}.ansrte ul{margin:.2em 0;padding-left:1.4em}
+.ansrte u{text-decoration-thickness:1.5px;text-underline-offset:3px}
+.ansrte span[style*="background"]{border-radius:4px;color:#1A2A3D}
+.ansrte[contenteditable="false"]{background:var(--field);opacity:.95}
+</style>
+<script>
+// Verktøylinje for svarfeltene (fet, understrek, liste, markering)
+(function(){const pane=document.getElementById("casepane");if(!pane)return;
+ pane.addEventListener("mousedown",e=>{if(e.target.closest(".ansed .rtb"))e.preventDefault()});
+ pane.addEventListener("click",e=>{const b=e.target.closest(".ansed .rtb");if(!b)return;const ed=b.closest(".ansed").querySelector(".ansrte");
+   const sel=getSelection();if(!sel.rangeCount||!ed.contains(sel.anchorNode)){ed.focus();return}
+   if(b.dataset.cmd){document.execCommand("styleWithCSS",false,false);document.execCommand(b.dataset.cmd)}
+   else{document.execCommand("styleWithCSS",false,true);document.execCommand("hiliteColor",false,b.dataset.hl==="x"?"transparent":HL[b.dataset.hl])}
+   ed.dispatchEvent(new Event("input"))});
+ pane.addEventListener("paste",e=>{const ed=e.target.closest&&e.target.closest(".ansrte");if(!ed)return;e.preventDefault();document.execCommand("insertText",false,(e.clipboardData||window.clipboardData).getData("text/plain"))});
+ pane.addEventListener("keydown",e=>{if(!e.target.closest||!e.target.closest(".ansrte"))return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="b"){e.preventDefault();document.execCommand("styleWithCSS",false,false);document.execCommand("bold");e.target.closest(".ansrte").dispatchEvent(new Event("input"))}});
+})();
+</script>
 </body></html>
