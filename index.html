@@ -2245,7 +2245,7 @@ function ansToEditor(v){v=String(v||"");if(!v)return "";if(v.indexOf("<")<0)retu
 function ansStamp(caseId,i){const m=S.get("syg-ans-ts",{});m[`${caseId}-${i}`]=Date.now();S.set("syg-ans-ts",m)}
 const ANS={t:null};
 function ansDoc(){return (typeof Acct!=="undefined"&&Acct.uid&&Acct.db)?Acct.db.collection("accounts").doc(Acct.uid).collection("images").doc("zz-answers"):null}
-function ansCollect(){const v={};for(let k=0;k<localStorage.length;k++){const key=localStorage.key(k);if(/^(syg-ans-|chk-)/.test(key)&&key!=="syg-ans-ts")v[key]=S.get(key,null)}return v}
+function ansCollect(){const v={};for(let k=0;k<localStorage.length;k++){const key=localStorage.key(k);if(/^(syg-ans-|chk-|syg-hl-)/.test(key)&&key!=="syg-ans-ts")v[key]=S.get(key,null)}return v}
 function ansCloudSave(now){const d=ansDoc();if(!d)return;clearTimeout(ANS.t);ANS.t=setTimeout(()=>{setSync("saving","Lagrer …");
   d.set({data:JSON.stringify({v:ansCollect(),ts:S.get("syg-ans-ts",{})}),updated:Date.now()}).then(()=>setSync("cloud","Lagret på «"+Acct.name+"»")).catch(()=>setSync("error","Kunne ikke lagre svarene på brukeren, lagret i nettleseren"))},now?50:1500)}
 async function ansCloudLoad(){const d=ansDoc();if(!d)return;try{const snap=await d.get();let changed=false;
@@ -2254,7 +2254,12 @@ async function ansCloudLoad(){const d=ansDoc();if(!d)return;try{const snap=await
       if(loc===null||loc===""||loc===false||(ts[id]||0)>(lts[id]||0)){if(JSON.stringify(loc)!==JSON.stringify(val)){S.set(key,val);changed=true}}});
     Object.keys(ts).forEach(id=>{if((ts[id]||0)>(lts[id]||0))lts[id]=ts[id]});S.set("syg-ans-ts",lts)}
   ansCloudSave(true);if(changed&&typeof renderCase==="function")renderCase()}catch(e){}}
-function ansClearLocal(){const ks=[];for(let k=0;k<localStorage.length;k++){const key=localStorage.key(k);if(/^(syg-ans-|chk-|syg-exm-)/.test(key))ks.push(key)}ks.forEach(k=>localStorage.removeItem(k));S.set("syg-exam",null)}
+// ---- Markering i selve caseteksten (teksten kan ikke endres) ----
+function hlOrig(c){return c.story+(c.note?`<p class="cnote">${c.note}</p>`:"")}
+function hlHash(t){let h=0;for(let k=0;k<t.length;k++)h=(h*31+t.charCodeAt(k))|0;return h}
+function hlStory(c){const o=hlOrig(c),v=S.get("syg-hl-"+c.id,null);return v&&v.h===hlHash(o)&&typeof v.html==="string"?v.html:o}
+function hlSave(c,html){const k="syg-hl-"+c.id;if(html===hlOrig(c))S.set(k,null);else S.set(k,{h:hlHash(hlOrig(c)),html});const m=S.get("syg-ans-ts",{});m[k]=Date.now();S.set("syg-ans-ts",m);ansCloudSave()}
+function ansClearLocal(){const ks=[];for(let k=0;k<localStorage.length;k++){const key=localStorage.key(k);if(/^(syg-ans-|chk-|syg-exm-|syg-hl-)/.test(key))ks.push(key)}ks.forEach(k=>localStorage.removeItem(k));S.set("syg-exam",null)}
 function savePrefs(){cloudWrite("/prefs",()=>({known:[...known],stars:[...stars],updated:Date.now()}),800);if(typeof acctSave==="function")acctSave()}
 async function initCloud(){
   try{
@@ -2314,7 +2319,7 @@ function renderCase(){
   pane.className=X?"ex-"+X.stage:"";
   pane.innerHTML=(X?exBar(c,X):"")+`<article class="journal">
     <div class="jhead"><h2>${c.name}</h2><span class="meta">${c.group!=="Pasientcaser"?c.group+" · ":""}${c.setting} · ${c.tasks.length} oppgaver</span>${!X&&examable(c)?`<button class="btn primary exbtn" id="exOpen" type="button">⏱ Eksamensmodus</button>`:""}</div>
-    <div class="jbody${c.vitals.length?"":" novitals"}${c.img?" hasimg":""}${c.jcls?" "+c.jcls:""}"><div class="story">${c.story}${c.note?`<p class="cnote">${c.note}</p>`:""}</div>
+    <div class="jbody${c.vitals.length?"":" novitals"}${c.img?" hasimg":""}${c.jcls?" "+c.jcls:""}"><div class="story" data-hlcase="${c.id}">${hlStory(c)}</div>
     ${(()=>{const v=c.vitals.length?`<aside class="vitals"><h3>Observasjoner</h3><dl>${c.vitals.map(v=>`<div><dt>${v[0]}</dt><dd>${v[1]}</dd></div>`).join("")}</dl></aside>`:"";return c.img?`<figure class="photo"><img src="${c.img}" alt="${c.imgAlt||c.name}"${c.imgPos?` style="object-position:${c.imgPos}"`:""}></figure>${v}`:v})()}</div>
     <div class="terms"><h3>Fagbegreper du bør bruke i svarene</h3><div class="chips">${c.terms.map(t=>`<span class="chip">${t}</span>`).join("")}</div></div>
   </article>
@@ -3541,5 +3546,54 @@ draw();})();
 <style>
 .task .row .savebtn{border-color:var(--green);color:var(--green)}
 .task .row .savebtn.saved{background:var(--t10-bg);border-color:var(--t10-bg);color:var(--t10-ink)}
+</style>
+<div id="hlPop" class="hlpop" role="toolbar" aria-label="Marker tekst i caset" hidden><button type="button" data-hl="g" aria-label="Grønn"><i class="hl-g"></i></button><button type="button" data-hl="b" aria-label="Blå"><i class="hl-b"></i></button><button type="button" data-hl="r" aria-label="Rosa"><i class="hl-r"></i></button><button type="button" data-hl="l" aria-label="Lilla"><i class="hl-l"></i></button><button type="button" data-hl="y" aria-label="Gul"><i class="hl-y"></i></button><button type="button" data-hl="o" aria-label="Fersken"><i class="hl-o"></i></button><button type="button" data-hl="t" aria-label="Turkis"><i class="hl-t"></i></button><button type="button" data-hl="k" aria-label="Korall"><i class="hl-k"></i></button><button type="button" data-hl="m" aria-label="Grå"><i class="hl-m"></i></button><button type="button" data-hl="x" aria-label="Fjern markering"><i class="hlx"></i></button></div>
+<script>
+// Marker tekst i caset: velg tekst, så dukker fargene opp. Teksten slås bare på som redigerbar i det øyeblikket fargen settes.
+(function(){const pop=document.getElementById("hlPop");let story=null;
+ const caseOf=el=>CASES.find(x=>x.id===el.dataset.hlcase);
+ const hide=()=>{pop.hidden=true;story=null};
+ const place=()=>{const sel=getSelection();if(!sel.rangeCount||sel.isCollapsed){hide();return}
+   const r=sel.getRangeAt(0),st=r.commonAncestorContainer.nodeType===1?r.commonAncestorContainer.closest(".story[data-hlcase]"):r.commonAncestorContainer.parentElement&&r.commonAncestorContainer.parentElement.closest(".story[data-hlcase]");
+   if(!st){hide();return}story=st;const b=r.getBoundingClientRect();pop.hidden=false;
+   const touch=matchMedia("(pointer:coarse)").matches,w=pop.offsetWidth,h=pop.offsetHeight;
+   let x=b.left+b.width/2-w/2+scrollX;x=Math.max(scrollX+8,Math.min(x,scrollX+document.documentElement.clientWidth-w-8));
+   let y=touch?b.bottom+scrollY+14:b.top+scrollY-h-10;if(!touch&&b.top<h+20)y=b.bottom+scrollY+10;
+   pop.style.left=x+"px";pop.style.top=y+"px"};
+ document.addEventListener("selectionchange",()=>{clearTimeout(place.t);place.t=setTimeout(place,120)});
+ pop.addEventListener("mousedown",e=>e.preventDefault());
+ pop.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!story)return;const st=story,c=caseOf(st);if(!c)return;
+   st.contentEditable="true";document.execCommand("styleWithCSS",false,true);
+   document.execCommand("hiliteColor",false,b.dataset.hl==="x"?"transparent":HL[b.dataset.hl]);
+   st.contentEditable="false";st.removeAttribute("contenteditable");
+   // gjør om til faste markeringer
+   st.querySelectorAll("span[style]").forEach(sp=>{const bg=sp.style.backgroundColor,k=HLRGB[String(bg).replace(/\s+/g,"").replace(/,/g,", ")];
+     const kids=[...sp.childNodes];
+     if(k){const m=document.createElement("mark");m.className="hl-"+k;kids.forEach(n=>m.appendChild(n));sp.replaceWith(m)}else{sp.replaceWith(...kids)}});
+   st.querySelectorAll("mark").forEach(m=>{if(!m.textContent)m.remove()});
+   st.querySelectorAll("mark mark").forEach(m=>m.replaceWith(...m.childNodes));
+   st.normalize();hlSave(c,st.innerHTML);getSelection().removeAllRanges();hide();hlResetBtn()});
+ // blokker all redigering av caseteksten
+ document.addEventListener("beforeinput",e=>{if(e.target.closest&&e.target.closest(".story[data-hlcase]"))e.preventDefault()},true);
+ window.addEventListener("scroll",()=>{if(!pop.hidden)place()},{passive:true});
+ // knapp for å fjerne alle markeringer i caset
+ window.hlResetBtn=function(){document.querySelectorAll(".story[data-hlcase]").forEach(st=>{const jb=st.closest(".jbody")||st;let b=jb.parentNode.querySelector(".hlreset");const has=!!st.querySelector("mark[class^='hl-']");
+   if(!has){if(b)b.remove();return}
+   if(!b){b=document.createElement("button");b.type="button";b.className="hlreset";b.textContent="Fjern alle markeringer i caset";jb.after(b);
+     b.onclick=()=>{if(!b.dataset.armed){b.dataset.armed=1;b.textContent="Trykk igjen for å fjerne";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="Fjern alle markeringer i caset"}},3000);return}
+       const c=caseOf(st);st.innerHTML=hlOrig(c);hlSave(c,hlOrig(c));b.remove()}}})};
+ new MutationObserver(()=>hlResetBtn()).observe(document.getElementById("casepane"),{childList:true});hlResetBtn();
+})();
+</script>
+<style>
+.story mark[class^="hl-"]{color:inherit;border-radius:3px;padding:0 .08em}
+.hlpop{position:absolute;z-index:60;display:flex;gap:4px;padding:6px;background:var(--paper);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(20,30,60,.16)}
+.hlpop button{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--paper);display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.hlpop button i{display:block;width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.08)}
+.hlpop button i.hlx{background:linear-gradient(135deg,transparent 45%,#C0605F 45%,#C0605F 55%,transparent 55%),var(--paper);border-color:var(--muted)}
+.hlpop button:hover{border-color:var(--muted)}
+.hlreset{display:block;margin:4px 22px 14px;font:inherit;font-size:13px;color:var(--muted);background:none;border:0;padding:4px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.hlreset[data-armed]{color:#C0392B}
+@media (max-width:720px){.hlpop{gap:3px;padding:5px;flex-wrap:wrap;max-width:calc(100vw - 16px)}.hlpop button{width:30px;height:30px}}
 </style>
 </body></html>
