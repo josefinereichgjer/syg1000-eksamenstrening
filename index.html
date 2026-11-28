@@ -2287,35 +2287,83 @@ function renderCase(){
   const c=CASES.find(x=>x.id===current);
   const pane=document.getElementById("casepane");
   if(c.notion){pane.innerHTML=`<article class="journal"><div class="jhead"><h2>${c.name}</h2><a class="nlink" href="${c.notion}" target="_blank" rel="noopener">Åpne i Notion ↗</a></div><div class="npv">${c.notionHtml}</div></article>`;return}
+  exStop();const X=exOn(c)?EX:null;
+  document.body.classList.toggle("exam-on",!!X&&X.stage==="run");
   if(c.pdf){pane.innerHTML=`<article class="journal"><div class="jhead"><h2>${c.name}</h2><span class="meta">${c.group} · s. 5–7</span></div><div class="pdfpages">${c.pdf.map((p,k)=>`<img src="${p}" alt="${c.name}, side ${k+5}" loading="lazy">`).join("")}</div></article>`;return}
-  pane.innerHTML=`<article class="journal">
-    <div class="jhead"><h2>${c.name}</h2><span class="meta">${c.group!=="Pasientcaser"?c.group+" · ":""}${c.setting} · ${c.tasks.length} oppgaver</span></div>
+  pane.className=X?"ex-"+X.stage:"";
+  pane.innerHTML=(X?exBar(c,X):"")+`<article class="journal">
+    <div class="jhead"><h2>${c.name}</h2><span class="meta">${c.group!=="Pasientcaser"?c.group+" · ":""}${c.setting} · ${c.tasks.length} oppgaver</span>${!X&&examable(c)?`<button class="btn primary exbtn" id="exOpen" type="button">⏱ Eksamensmodus</button>`:""}</div>
     <div class="jbody${c.vitals.length?"":" novitals"}${c.img?" hasimg":""}${c.jcls?" "+c.jcls:""}"><div class="story">${c.story}${c.note?`<p class="cnote">${c.note}</p>`:""}</div>
     ${(()=>{const v=c.vitals.length?`<aside class="vitals"><h3>Observasjoner</h3><dl>${c.vitals.map(v=>`<div><dt>${v[0]}</dt><dd>${v[1]}</dd></div>`).join("")}</dl></aside>`:"";return c.img?`<figure class="photo"><img src="${c.img}" alt="${c.imgAlt||c.name}"${c.imgPos?` style="object-position:${c.imgPos}"`:""}></figure>${v}`:v})()}</div>
     <div class="terms"><h3>Fagbegreper du bør bruke i svarene</h3><div class="chips">${c.terms.map(t=>`<span class="chip">${t}</span>`).join("")}</div></div>
   </article>
   <div class="tasks">${c.tasks.map((t,i)=>{
-    const key=`syg-ans-${c.id}-${i}`;
+    const key=X?`syg-exm-${c.id}-${i}`:`syg-ans-${c.id}-${i}`;
     const cls=!t.weight?"b0":t.weight===10?"b10":t.weight===15?"b15":"b20";
     const isOwn=c.group.startsWith("Eksamenstrening");
     const bLab=c.ansBtn||(isOwn?"Vis svaret ditt":"Vis løsningsforslag"), hLab=c.ansHead||(isOwn?"Svaret ditt fra "+c.group.toLowerCase():"Løsningsforslag");
     return `<div class="task">
       <div class="tmeta"><span class="tnum">Oppgave ${t.label||i+1}</span><span class="badge ${cls}">${t.verb}${t.weight?` · ${t.weight} %`:""}</span></div>
       <p class="q">${t.q}</p>
-      <textarea id="${key}" placeholder="Skriv ditt eget svar først, i hele setninger og med fagbegreper …">${esc(S.get(key,""))}</textarea>
+      <textarea id="${key}"${X&&X.stage==="done"?" readonly":""} placeholder="Skriv ditt eget svar først, i hele setninger og med fagbegreper …">${esc(S.get(key,""))}</textarea>
       <div class="row">${(t.answer||t.check)?`<button class="btn primary" data-toggle="${i}" data-label="${t.answer?bLab:"Vis hva sensor ser etter"}">${t.answer?bLab:"Vis hva sensor ser etter"}</button>`:`<span class="hint">Ingen løsningsforslag ennå</span>`}<span class="hint" id="wc-${i}"></span></div>
-      ${(t.answer||t.check)?`<div class="answer" id="ans-${i}" hidden>
+      ${(t.answer||t.check)?`<div class="answer" id="ans-${i}"${X&&X.stage==="done"?"":" hidden"}>
         ${t.answer?`<h4>${hLab}</h4><div class="model">${t.answer}</div>`:""}
         ${t.check?`<div class="check"><h4>Sensor ser etter</h4><ul>${t.check.map((k,j)=>`<li><label><input type="checkbox" id="chk-${c.id}-${i}-${j}"> ${k}</label></li>`).join("")}</ul></div>`:""}
         ${t.ref?`<p class="ref">Pensum: ${t.ref}</p>`:""}
       </div>`:""}</div>`}).join("")}</div>`;
   c.tasks.forEach((t,i)=>{
-    const key=`syg-ans-${c.id}-${i}`, ta=document.getElementById(key), wc=document.getElementById("wc-"+i);
+    const key=X?`syg-exm-${c.id}-${i}`:`syg-ans-${c.id}-${i}`, ta=document.getElementById(key), wc=document.getElementById("wc-"+i);
     const upd=()=>{const n=ta.value.trim()?ta.value.trim().split(/\s+/).length:0;wc.textContent=n?`${n} ord`:""};
-    upd(); ta.addEventListener("input",()=>{S.set(key,ta.value);upd();saveTask(c.id,i)});
+    upd(); ta.addEventListener("input",()=>{S.set(key,ta.value);upd();if(X)exWordsUpd(c);else saveTask(c.id,i)});
     (t.check||[]).forEach((_,j)=>{const id=`chk-${c.id}-${i}-${j}`,cb=document.getElementById(id);if(!cb)return;cb.checked=S.get(id,false);cb.onchange=()=>{S.set(id,cb.checked);saveTask(c.id,i,300)}});
   });
   pane.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{const a=document.getElementById("ans-"+b.dataset.toggle);a.hidden=!a.hidden;b.textContent=a.hidden?b.dataset.label:b.dataset.label.replace(/^Vis/,"Skjul")});
+  const xo=document.getElementById("exOpen");if(xo)xo.onclick=()=>{EX={case:c.id,stage:"setup",dur:S.get("syg-exam-dur",180)};exSave();renderCase();window.scrollTo(0,0)};
+  if(X)exWire(c,X);
+}
+// ---- Eksamensmodus ----
+// Svarene lagres i nettleseren (syg-exm-…), adskilt fra de vanlige casesvarene.
+let EX=S.get("syg-exam",null),exTick=null;
+function exSave(){S.set("syg-exam",EX)}
+const exOn=c=>!!(EX&&EX.case===c.id);
+const examable=c=>!c.notion&&!c.pdf&&(c.tasks||[]).length>0;
+const exFmt=ms=>{ms=Math.max(0,Math.round(ms/1000));const h=Math.floor(ms/3600),m=Math.floor(ms%3600/60),x=ms%60;return (h?h+":"+String(m).padStart(2,"0"):String(m))+":"+String(x).padStart(2,"0")};
+const exWordsOf=c=>c.tasks.reduce((n,_,i)=>{const v=String(S.get(`syg-exm-${c.id}-${i}`,"")).trim();return n+(v?v.split(/\s+/).length:0)},0);
+function exStop(){clearInterval(exTick);exTick=null}
+function exBar(c,X){
+  if(X.stage==="setup"){const opts=[[60,"1 time"],[120,"2 timer"],[180,"3 timer"],[240,"4 timer"],[0,"Uten tid"]];
+    return `<div class="exbar exsetup"><div class="exh"><b>⏱ Eksamensmodus</b><span>${c.tasks.length} oppgaver</span></div>
+      <p>Du ser caset og oppgavene, men løsningsforslagene er skjult til du leverer. Svarene lagres underveis og blandes ikke med de vanlige svarene dine. Når tiden er ute, leveres eksamen automatisk.</p>
+      <div class="extimes" role="group" aria-label="Velg tid">${opts.map(o=>`<button type="button" class="chip" data-dur="${o[0]}" aria-pressed="${X.dur===o[0]}">${o[1]}</button>`).join("")}</div>
+      <div class="exrow"><button class="btn primary" id="exGo" type="button">Start eksamen</button><button class="btn" id="exQuit" type="button">Avbryt</button></div></div>`}
+  if(X.stage==="run")return `<div class="exbar exrun"><span class="exclock" id="exClock"></span><span class="exw" id="exWords"></span><span class="sp"></span><button class="btn primary" id="exSubmit" type="button">Lever</button><button class="btn" id="exQuit" type="button">Avbryt</button></div>`;
+  const used=X.end-X.start;
+  return `<div class="exbar exdone"><div class="exh"><b>${X.auto?"Tiden er ute, eksamen er levert":"Eksamen er levert"}</b><span>Brukt tid ${exFmt(used)} · ${exWordsOf(c)} ord</span></div>
+    <p>Sammenlign svarene dine med løsningsforslaget under hver oppgave. Hva fikk du med, og hva manglet?</p>
+    <div class="exrow"><button class="btn" id="exKeep" type="button">Lagre svarene i caset</button><button class="btn primary" id="exQuit" type="button">Avslutt eksamensmodus</button></div></div>`;
+}
+function exWordsUpd(c){const w=document.getElementById("exWords");if(w)w.textContent=exWordsOf(c)+" ord"}
+function exSubmit(auto){exStop();EX.stage="done";EX.end=EX.dur?Math.min(Date.now(),EX.start+EX.dur*60000):Date.now();EX.auto=!!auto;exSave();renderCase();window.scrollTo(0,0)}
+function exQuit(){exStop();EX=null;exSave();document.body.classList.remove("exam-on");renderCase();window.scrollTo(0,0)}
+// To trykk for å bekrefte, så man ikke leverer eller avbryter ved et uhell
+function exConfirm(b,txt,fn){if(b.dataset.armed){fn();return}const o=b.textContent;b.dataset.armed=1;b.textContent=txt;b.classList.add("armed");setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=o;b.classList.remove("armed")}},3500)}
+function exWire(c,X){
+  const q=id=>document.getElementById(id);
+  if(X.stage==="setup"){
+    document.querySelectorAll("[data-dur]").forEach(b=>b.onclick=()=>{X.dur=+b.dataset.dur;S.set("syg-exam-dur",X.dur);exSave();renderCase()});
+    q("exGo").onclick=()=>{c.tasks.forEach((_,i)=>S.set(`syg-exm-${c.id}-${i}`,""));X.stage="run";X.start=Date.now();exSave();renderCase();window.scrollTo(0,0)};
+    q("exQuit").onclick=exQuit;return}
+  if(X.stage==="run"){
+    const tick=()=>{const el=q("exClock");if(!X.dur){if(el)el.textContent="⏱ "+exFmt(Date.now()-X.start);return}
+      const left=X.start+X.dur*60000-Date.now();if(left<=0){exSubmit(true);return}
+      if(el){el.textContent="⏱ "+exFmt(left)+" igjen";el.classList.toggle("low",left<600000)}};
+    q("exSubmit").onclick=e=>exConfirm(e.currentTarget,"Trykk igjen for å levere",()=>exSubmit(false));
+    q("exQuit").onclick=e=>exConfirm(e.currentTarget,"Trykk igjen: svarene slettes",exQuit);
+    exWordsUpd(c);exTick=setInterval(tick,1000);tick();return}
+  q("exQuit").onclick=exQuit;
+  q("exKeep").onclick=e=>exConfirm(e.currentTarget,"Trykk igjen: erstatter svarene i caset",()=>{
+    c.tasks.forEach((_,i)=>{S.set(`syg-ans-${c.id}-${i}`,S.get(`syg-exm-${c.id}-${i}`,""));saveTask(c.id,i)});exQuit()});
 }
 renderList();renderCase();
 (function(){const L=document.getElementById("caselist"),U=document.getElementById("sUp"),D=document.getElementById("sDown");
@@ -3365,5 +3413,28 @@ document.getElementById("delX").onclick=()=>document.getElementById("delDlg").cl
 .card .face.back{transform:none}
 .card:not(.flipped) .face.back,.card.flipped .face.front{visibility:hidden}
 .card .card-inner{will-change:transform}
+</style>
+<style>
+/* ---- Eksamensmodus ---- */
+.jhead .exbtn{margin-left:auto;padding:8px 16px;font-size:14px;min-height:0}
+body.exam-on .layout{grid-template-columns:minmax(0,1fr)}
+body.exam-on .sidebar{display:none}
+#casepane.ex-setup .tasks,#casepane.ex-setup .terms{display:none}
+#casepane.ex-run [data-toggle],#casepane.ex-run .answer,#casepane.ex-done [data-toggle]{display:none}
+.exbar{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin-bottom:14px;box-shadow:var(--panel-shadow)}
+.exbar p{margin:8px 0 12px;color:var(--muted);font-size:15px;line-height:1.5;max-width:70ch}
+.exbar .exh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}.exbar .exh b{font-size:18px}.exbar .exh span{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.exbar .extimes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.exbar .extimes .chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--on-primary,#fff)}
+.exbar .exrow{display:flex;flex-wrap:wrap;gap:8px}
+.exbar.exrun{position:sticky;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:20;display:flex;align-items:center;flex-wrap:wrap;gap:10px 16px;padding:10px 14px 10px 18px}
+.exbar.exrun .sp{flex:1}
+.exclock{font-family:var(--f-mono);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.exclock.low{color:#C0392B}
+.exw{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.exbar .btn.armed{background:#C0392B;border-color:#C0392B;color:#fff}
+.exbar.exdone{border-top:4px solid var(--green)}
+#casepane.ex-done textarea{background:var(--field)}
+@media (max-width:720px){.exbar.exrun .btn{padding:8px 12px;font-size:14px;min-height:0}.exclock{font-size:17px}}
 </style>
 </body></html>
