@@ -3522,7 +3522,7 @@ draw();})();
 /* Svarfelt på caser: samme redigeringsverktøy som flashcards */
 .ansed{margin-top:8px;max-width:72ch}
 .ansed .rtbar{margin:0 0 6px}
-.ansrte{min-height:120px;max-height:min(340px,45vh);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;font-size:15px;line-height:1.55;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);outline:none;white-space:pre-wrap;word-break:break-word}
+.ansrte{min-height:120px;max-height:min(340px,45vh);overflow-y:auto;resize:vertical;overscroll-behavior:contain;scrollbar-width:thin;font-size:15px;line-height:1.55;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);outline:none;white-space:pre-wrap;word-break:break-word}
 .ansrte:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
 .ansrte:empty::before{content:attr(data-ph);color:var(--muted);pointer-events:none}
 .ansrte p,.ansrte div{margin:0}.ansrte ul{margin:.2em 0;padding-left:1.4em}
@@ -3534,6 +3534,13 @@ draw();})();
 // Verktøylinje for svarfeltene (fet, understrek, liste, markering)
 (function(){const pane=document.getElementById("casepane");if(!pane)return;
  pane.addEventListener("mousedown",e=>{if(e.target.closest(".ansed .rtb"))e.preventDefault()});
+ // Dra i hjørnet nederst til høyre for å gjøre svarfeltet høyere eller lavere. Høyden huskes.
+ pane.addEventListener("pointerdown",e=>{const ed=e.target.closest&&e.target.closest(".ansrte");if(!ed)return;const r=ed.getBoundingClientRect();
+   if(e.clientX>r.right-22&&e.clientY>r.bottom-22){ed.style.maxHeight="none";if(!ed.style.height)ed.style.height=r.height+"px";
+     const up=()=>{window.removeEventListener("pointerup",up);const h=Math.round(ed.getBoundingClientRect().height);S.set("syg-ans-h",h);pane.querySelectorAll(".ansrte").forEach(x=>{x.style.maxHeight="none";x.style.height=h+"px"})};
+     window.addEventListener("pointerup",up)}});
+ const ansH=()=>{const h=S.get("syg-ans-h",0);if(!h)return;pane.querySelectorAll(".ansrte:not([data-h])").forEach(x=>{x.dataset.h=1;x.style.maxHeight="none";x.style.height=h+"px"})};
+ new MutationObserver(ansH).observe(pane,{childList:true});ansH();
  pane.addEventListener("click",e=>{const b=e.target.closest(".ansed .rtb");if(!b)return;const ed=b.closest(".ansed").querySelector(".ansrte");
    const sel=getSelection();if(!sel.rangeCount||!ed.contains(sel.anchorNode)){ed.focus();return}
    if(b.dataset.cmd){document.execCommand("styleWithCSS",false,false);document.execCommand(b.dataset.cmd)}
