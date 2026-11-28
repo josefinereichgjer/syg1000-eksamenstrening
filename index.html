@@ -873,7 +873,7 @@ ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;
 <button type="button" class="rtb sw" data-hl="b" title="Blå markering" aria-label="Blå markering"><i class="hl-b"></i></button>
 <button type="button" class="rtb sw" data-hl="r" title="Rosa markering" aria-label="Rosa markering"><i class="hl-r"></i></button>
 <button type="button" class="rtb sw" data-hl="l" title="Lilla markering" aria-label="Lilla markering"><i class="hl-l"></i></button>
-<button type="button" class="rtb sw" data-hl="y" title="Gul markering" aria-label="Gul markering"><i class="hl-y"></i></button>
+<button type="button" class="rtb sw" data-hl="y" title="Gul markering" aria-label="Gul markering"><i class="hl-y"></i></button><button type="button" class="rtb sw" data-hl="o" title="Fersken markering" aria-label="Fersken markering"><i class="hl-o"></i></button><button type="button" class="rtb sw" data-hl="t" title="Turkis markering" aria-label="Turkis markering"><i class="hl-t"></i></button><button type="button" class="rtb sw" data-hl="k" title="Korall markering" aria-label="Korall markering"><i class="hl-k"></i></button><button type="button" class="rtb sw" data-hl="m" title="Lime markering" aria-label="Lime markering"><i class="hl-m"></i></button>
 <button type="button" class="rtb sw" data-hl="x" title="Fjern markering" aria-label="Fjern markering"><i class="hlx"></i></button><span class="rtsep"></span>
 <button type="button" class="rtb tcb" data-tc="r" title="Rød tekst" aria-label="Rød tekst"><span class="tc-r">A</span></button>
 <button type="button" class="rtb tcb" data-tc="b" title="Blå tekst" aria-label="Blå tekst"><span class="tc-b">A</span></button>
@@ -2326,8 +2326,8 @@ function renderCase(){
     return `<div class="task">
       <div class="tmeta"><span class="tnum">Oppgave ${t.label||i+1}</span><span class="badge ${cls}">${t.verb}${t.weight?` · ${t.weight} %`:""}</span></div>
       <p class="q">${t.q}</p>
-      <div class="ansed">${X&&X.stage==="done"?"":`<div class="rtbar ansbar" role="toolbar" aria-label="Formatering"><button type="button" class="rtb" data-cmd="bold" title="Fet skrift (Ctrl+B)" aria-label="Fet skrift"><b>F</b></button><button type="button" class="rtb" data-cmd="underline" title="Understrek (Ctrl+U)" aria-label="Understrek"><u>U</u></button><button type="button" class="rtb" data-cmd="insertUnorderedList" title="Punktliste" aria-label="Punktliste"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="4" cy="5" r="1.6" fill="currentColor"/><circle cx="4" cy="10" r="1.6" fill="currentColor"/><circle cx="4" cy="15" r="1.6" fill="currentColor"/><path d="M8 5h9M8 10h9M8 15h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><span class="rtsep"></span><button type="button" class="rtb sw" data-hl="g" title="Grønn markering" aria-label="Grønn markering"><i class="hl-g"></i></button><button type="button" class="rtb sw" data-hl="b" title="Blå markering" aria-label="Blå markering"><i class="hl-b"></i></button><button type="button" class="rtb sw" data-hl="r" title="Rosa markering" aria-label="Rosa markering"><i class="hl-r"></i></button><button type="button" class="rtb sw" data-hl="l" title="Lilla markering" aria-label="Lilla markering"><i class="hl-l"></i></button><button type="button" class="rtb sw" data-hl="y" title="Gul markering" aria-label="Gul markering"><i class="hl-y"></i></button><button type="button" class="rtb sw" data-hl="x" title="Fjern markering" aria-label="Fjern markering"><i class="hlx"></i></button></div>`}<div class="rte ansrte" id="${key}" contenteditable="${X&&X.stage==="done"?"false":"true"}" role="textbox" aria-multiline="true" aria-label="Ditt svar på oppgave ${t.label||i+1}" data-ph="Skriv ditt eget svar først, i hele setninger og med fagbegreper …">${ansToEditor(S.get(key,""))}</div></div>
-      <div class="row">${(t.answer||t.check)?`<button class="btn primary" data-toggle="${i}" data-label="${t.answer?bLab:"Vis hva sensor ser etter"}">${t.answer?bLab:"Vis hva sensor ser etter"}</button>`:`<span class="hint">Ingen løsningsforslag ennå</span>`}<span class="hint" id="wc-${i}"></span></div>
+      <div class="ansed">${X&&X.stage==="done"?"":`<div class="rtbar ansbar" role="toolbar" aria-label="Formatering"><button type="button" class="rtb" data-cmd="bold" title="Fet skrift (Ctrl+B)" aria-label="Fet skrift"><b>F</b></button><button type="button" class="rtb" data-cmd="underline" title="Understrek (Ctrl+U)" aria-label="Understrek"><u>U</u></button><button type="button" class="rtb" data-cmd="insertUnorderedList" title="Punktliste" aria-label="Punktliste"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="4" cy="5" r="1.6" fill="currentColor"/><circle cx="4" cy="10" r="1.6" fill="currentColor"/><circle cx="4" cy="15" r="1.6" fill="currentColor"/><path d="M8 5h9M8 10h9M8 15h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><span class="rtsep"></span><button type="button" class="rtb sw" data-hl="g" title="Grønn markering" aria-label="Grønn markering"><i class="hl-g"></i></button><button type="button" class="rtb sw" data-hl="b" title="Blå markering" aria-label="Blå markering"><i class="hl-b"></i></button><button type="button" class="rtb sw" data-hl="r" title="Rosa markering" aria-label="Rosa markering"><i class="hl-r"></i></button><button type="button" class="rtb sw" data-hl="l" title="Lilla markering" aria-label="Lilla markering"><i class="hl-l"></i></button><button type="button" class="rtb sw" data-hl="y" title="Gul markering" aria-label="Gul markering"><i class="hl-y"></i></button><button type="button" class="rtb sw" data-hl="o" title="Fersken markering" aria-label="Fersken markering"><i class="hl-o"></i></button><button type="button" class="rtb sw" data-hl="t" title="Turkis markering" aria-label="Turkis markering"><i class="hl-t"></i></button><button type="button" class="rtb sw" data-hl="k" title="Korall markering" aria-label="Korall markering"><i class="hl-k"></i></button><button type="button" class="rtb sw" data-hl="m" title="Lime markering" aria-label="Lime markering"><i class="hl-m"></i></button><button type="button" class="rtb sw" data-hl="x" title="Fjern markering" aria-label="Fjern markering"><i class="hlx"></i></button></div>`}<div class="rte ansrte" id="${key}" contenteditable="${X&&X.stage==="done"?"false":"true"}" role="textbox" aria-multiline="true" aria-label="Ditt svar på oppgave ${t.label||i+1}" data-ph="Skriv ditt eget svar først, i hele setninger og med fagbegreper …">${ansToEditor(S.get(key,""))}</div></div>
+      <div class="row">${(t.answer||t.check)?`<button class="btn primary" data-toggle="${i}" data-label="${t.answer?bLab:"Vis hva sensor ser etter"}">${t.answer?bLab:"Vis hva sensor ser etter"}</button>`:`<span class="hint">Ingen løsningsforslag ennå</span>`}${X?"":`<button class="btn savebtn" type="button" data-save="${i}">Lagre svar</button>`}<span class="hint" id="wc-${i}"></span></div>
       ${(t.answer||t.check)?`<div class="answer" id="ans-${i}"${X&&X.stage==="done"?"":" hidden"}>
         ${t.answer?`<h4>${hLab}</h4><div class="model">${t.answer}</div>`:""}
         ${t.check?`<div class="check"><h4>Sensor ser etter</h4><ul>${t.check.map((k,j)=>`<li><label><input type="checkbox" id="chk-${c.id}-${i}-${j}"> ${k}</label></li>`).join("")}</ul></div>`:""}
@@ -2336,7 +2336,16 @@ function renderCase(){
   c.tasks.forEach((t,i)=>{
     const key=X?`syg-exm-${c.id}-${i}`:`syg-ans-${c.id}-${i}`, ta=document.getElementById(key), wc=document.getElementById("wc-"+i);
     const upd=()=>{const n=ansWords(ta.innerText);wc.textContent=n?`${n} ord`:""};
-    upd(); ta.addEventListener("input",()=>{const h=richClean(ta.innerHTML);S.set(key,richIsEmpty(h)?"":h);upd();if(X)exWordsUpd(c);else saveTask(c.id,i)});
+    const sb=pane.querySelector(`[data-save="${i}"]`);
+    const store=()=>{const h=richClean(ta.innerHTML);S.set(key,richIsEmpty(h)?"":h)};
+    upd(); ta.addEventListener("input",()=>{store();upd();if(X)exWordsUpd(c);else{saveTask(c.id,i);if(sb&&sb.classList.contains("saved")){sb.classList.remove("saved");sb.textContent="Lagre svar"}}});
+    if(sb)sb.onclick=()=>{store();ansStamp(c.id,i);cloudWrite(`/ans-${c.id}-${i}`,()=>taskDoc(c.id,i),0);
+      const d=ansDoc();sb.classList.add("saved");
+      if(!d){sb.textContent="✓ Lagret i nettleseren";return}
+      clearTimeout(ANS.t);sb.textContent="Lagrer …";
+      d.set({data:JSON.stringify({v:ansCollect(),ts:S.get("syg-ans-ts",{})}),updated:Date.now()})
+       .then(()=>{sb.textContent="✓ Lagret på brukeren";setSync("cloud","Lagret på «"+Acct.name+"»")})
+       .catch(()=>{sb.classList.remove("saved");sb.textContent="Kunne ikke lagre, prøv igjen";setSync("error","Kunne ikke lagre svarene på brukeren, lagret i nettleseren")})};
     (t.check||[]).forEach((_,j)=>{const id=`chk-${c.id}-${i}-${j}`,cb=document.getElementById(id);if(!cb)return;cb.checked=S.get(id,false);cb.onchange=()=>{S.set(id,cb.checked);saveTask(c.id,i,300)}});
   });
   pane.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{const a=document.getElementById("ans-"+b.dataset.toggle);a.hidden=!a.hidden;b.textContent=a.hidden?b.dataset.label:b.dataset.label.replace(/^Vis/,"Skjul")});
@@ -2529,7 +2538,7 @@ const escH=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 // h:1 = formatert tekst (fet/markering). o = id til et innebygd kort som er redigert (ikke et eget kort).
 const cleanMine=a=>(Array.isArray(a)?a:[]).filter(m=>m&&typeof m.id==="string"&&typeof m.q==="string"&&typeof m.a==="string").map(m=>{const r={id:m.id.slice(0,40),q:m.h?richClean(m.q).slice(0,2000):m.q.slice(0,300),a:m.h?richClean(m.a).slice(0,8000):m.a.slice(0,1500),t:+m.t||0};if(m.h)r.h=1;if(m.x)r.x=1;if(typeof m.o==="string")r.o=m.o.slice(0,600);if(m.u==="T"||m.u==="SC")r.u=m.u;if(typeof m.c==="string"&&m.c.length<=60)r.c=m.c;if(typeof m.n==="string"&&/^[RSTVEAOHXG]{1,10}$/.test(m.n))r.n=m.n;["qi","ai"].forEach(k=>{const v=m[k];if(v&&typeof v.id==="string"&&/^[a-z0-9]{4,40}$/.test(v.id))r[k]={id:v.id,w:+v.w||0,h:+v.h||0}});return r}).slice(0,500);
 // Formatert tekst: bare fet skrift, fargemarkering, avsnitt og lister slipper gjennom.
-const HL={g:"#D7ECCB",b:"#D6E4F4",r:"#F6DCE4",l:"#E6DDF3",y:"#F5EBB5"};
+const HL={g:"#D7ECCB",b:"#D6E4F4",r:"#F6DCE4",l:"#E6DDF3",y:"#F5EBB5",o:"#F9E0CB",t:"#D0ECE7",k:"#F6CFC8",m:"#E6ECBF"};
 // Tekstfarger og skriftstørrelser i redigeringen
 const TC={r:"#C0392B",b:"#2563B0",g:"#2E7D3E",l:"#7B4BB7",o:"#C26A12",x:"#010101"};
 const TCK={};Object.entries(TC).forEach(([k,v])=>{const n=parseInt(v.slice(1),16);TCK[v.toLowerCase()]=k;TCK[`rgb(${n>>16},${n>>8&255},${n&255})`]=k});
@@ -2552,7 +2561,7 @@ function richClean(html){
     if(tag==="b"||tag==="strong")b=true;
     if(tag==="u"||tag==="ins"||/underline/.test((n.style&&(n.style.textDecoration||n.style.textDecorationLine))||""))u=true;
     const fw=n.style&&n.style.fontWeight;if(fw==="bold"||+fw>=600)b=true;if(fw==="normal"||(+fw&&+fw<600))b=false;
-    const cm=(n.className&&typeof n.className==="string")?n.className.match(/(?:^|\s)hl-([gbrly])(?:\s|$)/):null;if(cm)h=cm[1];
+    const cm=(n.className&&typeof n.className==="string")?n.className.match(/(?:^|\s)hl-([gbrlyotkm])(?:\s|$)/):null;if(cm)h=cm[1];
     const bg=n.style&&n.style.backgroundColor;if(bg){h=HLRGB[bg.replace(/\s+/g,"").replace(/,/g,", ")]||(/transparent|rgba\(0, 0, 0, 0\)/.test(bg)?null:h)}
     const blk=/^(p|div|li|h[1-6])$/.test(tag);
     if(tag==="ul"||tag==="ol"){out.push(`<${tag}${n.classList.contains("nl")?' class="nl"':""}>`);n.childNodes.forEach(x=>walk(x,b,h,u,c,f));out.push(`</${tag}>`);return}
@@ -2563,7 +2572,7 @@ function richClean(html){
   t.content.childNodes.forEach(c=>walk(c,false,null,false,null,null));
   return out.join("").replace(/<\/b><b>/g,"").replace(/<\/u><u>/g,"").replace(/<p><\/p>/g,"<p><br></p>").trim();
 }
-const richToEditor=h=>String(h).replace(/<mark class="hl-([gbrly])">/g,(m,k)=>`<span style="background-color:${HL[k]}">`).replace(/<\/mark>/g,"</span>");
+const richToEditor=h=>String(h).replace(/<mark class="hl-([gbrlyotkm])">/g,(m,k)=>`<span style="background-color:${HL[k]}">`).replace(/<\/mark>/g,"</span>");
 const richIsEmpty=h=>!String(h).replace(/<[^>]*>/g,"").replace(/&nbsp;|\s/g,"").length;
 let EDITS=new Map();
 // ---- Bilder: komprimeres i nettleseren, mellomlagres i IndexedDB og lagres på brukeren (ett dokument per bilde) ----
@@ -3268,9 +3277,9 @@ const QUIZ=[["SYG1000", "Hva er riktig rekkefølge i sykepleieprosessen?", ["Dat
 </script>
 <style>
 /* Markeringsfarger: dempede pasteller som passer sidens grønn/blå palett */
-:root{--hl-g:#D7ECCB;--hl-b:#D6E4F4;--hl-r:#F6DCE4;--hl-l:#E6DDF3;--hl-y:#F5EBB5}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--hl-g:rgba(127,195,112,.30);--hl-b:rgba(138,169,218,.32);--hl-r:rgba(226,140,170,.30);--hl-l:rgba(170,145,220,.32);--hl-y:rgba(214,196,90,.30)}}
-:root[data-theme="dark"]{--hl-g:rgba(127,195,112,.30);--hl-b:rgba(138,169,218,.32);--hl-r:rgba(226,140,170,.30);--hl-l:rgba(170,145,220,.32);--hl-y:rgba(214,196,90,.30)}
+:root{--hl-g:#D7ECCB;--hl-b:#D6E4F4;--hl-r:#F6DCE4;--hl-l:#E6DDF3;--hl-y:#F5EBB5;--hl-o:#F9E0CB;--hl-t:#D0ECE7;--hl-k:#F6CFC8;--hl-m:#E6ECBF}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--hl-g:rgba(127,195,112,.30);--hl-b:rgba(138,169,218,.32);--hl-r:rgba(226,140,170,.30);--hl-l:rgba(170,145,220,.32);--hl-y:rgba(214,196,90,.30);--hl-o:rgba(232,160,110,.32);--hl-t:rgba(100,190,175,.30);--hl-k:rgba(230,120,105,.32);--hl-m:rgba(190,205,90,.30)}}
+:root[data-theme="dark"]{--hl-g:rgba(127,195,112,.30);--hl-b:rgba(138,169,218,.32);--hl-r:rgba(226,140,170,.30);--hl-l:rgba(170,145,220,.32);--hl-y:rgba(214,196,90,.30);--hl-o:rgba(232,160,110,.32);--hl-t:rgba(100,190,175,.30);--hl-k:rgba(230,120,105,.32);--hl-m:rgba(190,205,90,.30)}
 mark[class^="hl-"],i[class^="hl-"]{color:inherit;border-radius:4px;padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .tc-r{color:#C0392B}.tc-b{color:#2563B0}.tc-g{color:#2E7D3E}.tc-l{color:#7B4BB7}.tc-o{color:#C26A12}
 .fs-s{font-size:.8em}.fs-l{font-size:1.3em}.fs-xl{font-size:1.65em;line-height:1.2}
@@ -3278,7 +3287,7 @@ mark[class^="hl-"],i[class^="hl-"]{color:inherit;border-radius:4px;padding:0 .12
 .rtb.tcb span{font-weight:700;font-size:16px}
 @media (max-width:720px){#mineDlg .rtbar{flex-wrap:wrap!important;justify-content:flex-start!important;gap:5px!important}}
 mark.hl-y,mark.hl-g,mark.hl-b,mark.hl-r,mark.hl-l{color:inherit;-webkit-box-decoration-break:clone;box-decoration-break:clone;padding:0 2px;border-radius:3px}
-.hl-g{background:var(--hl-g)}.hl-b{background:var(--hl-b)}.hl-r{background:var(--hl-r)}.hl-l{background:var(--hl-l)}.hl-y{background:var(--hl-y)}
+.hl-g{background:var(--hl-g)}.hl-b{background:var(--hl-b)}.hl-r{background:var(--hl-r)}.hl-l{background:var(--hl-l)}.hl-y{background:var(--hl-y)}.hl-o{background:var(--hl-o)}.hl-t{background:var(--hl-t)}.hl-k{background:var(--hl-k)}.hl-m{background:var(--hl-m)}
 .rich u,#mineDlg .rte u{text-decoration-thickness:1.5px;text-underline-offset:3px}.rich ul:not(.nl){margin:.2em 0 .6em;padding-left:1.3em;list-style:disc}.rich ul:not(.nl) li{margin:.15em 0}#mineDlg .rte ul{margin:.2em 0;padding-left:1.4em}.rich p{margin:0 0 .6em}.rich p:last-child{margin-bottom:0}.rich b{font-weight:700}
 .rtbar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:10px 0 2px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--field)}
 .rtb{min-width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0 10px}
@@ -3292,7 +3301,7 @@ mark.hl-y,mark.hl-g,mark.hl-b,mark.hl-r,mark.hl-l{color:inherit;-webkit-box-deco
 #mineDlg .rte p,#mineDlg .rte div{margin:0}
 #mineDlg .rte span[style*="background"]{border-radius:4px;color:inherit}
 .edbadge{margin-left:8px;font-size:11px;font-weight:600;opacity:.7;text-transform:none;letter-spacing:0}
-@media (max-width:720px){.fc-actions #mineEdit{order:7}.rtbar{gap:4px;padding:5px}.rtbar .rtb{min-width:0;min-height:0;height:31px;width:29px;padding:0;flex:none}.rtbar{gap:3px;flex-wrap:nowrap;justify-content:space-between}.rtbar .rtsep{display:none}.rtbar .rtb.sw i{width:18px;height:18px}}
+@media (max-width:720px){.fc-actions #mineEdit{order:7}.rtbar{gap:4px;padding:5px}.rtbar .rtb{min-width:0;min-height:0;height:31px;width:29px;padding:0;flex:none}.rtbar{gap:4px;flex-wrap:wrap;justify-content:flex-start}.rtbar .rtsep{display:none}.rtbar .rtb.sw i{width:18px;height:18px}}
 </style>
 <style>
 .fc-top .chip.pickchip{border-color:var(--green)}
@@ -3529,4 +3538,8 @@ draw();})();
  pane.addEventListener("keydown",e=>{if(!e.target.closest||!e.target.closest(".ansrte"))return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="b"){e.preventDefault();document.execCommand("styleWithCSS",false,false);document.execCommand("bold");e.target.closest(".ansrte").dispatchEvent(new Event("input"))}});
 })();
 </script>
+<style>
+.task .row .savebtn{border-color:var(--green);color:var(--green)}
+.task .row .savebtn.saved{background:var(--t10-bg);border-color:var(--t10-bg);color:var(--t10-ink)}
+</style>
 </body></html>
